@@ -22,6 +22,7 @@ let stats = loadJson(STATS_KEY, {
   longestStreak: 0,
   sessions: 0,
   bestSession: 0,
+  furthestCheckpoint: 0,
   categories: {},
 });
 
@@ -113,7 +114,6 @@ function showQuestion() {
     button.addEventListener("click", () => grade(button, answer));
     choices.appendChild(button);
   }
-  document.querySelector("#fact").classList.add("hidden");
   document.querySelector("#next-question").classList.add("hidden");
 }
 
@@ -133,9 +133,13 @@ function grade(button, answer) {
     sessionCorrect += 1;
     stats.longestStreak = Math.max(stats.longestStreak, stats.currentStreak);
     stats.bestSession = Math.max(stats.bestSession, sessionCorrect);
+    noteCheckpoint(stats.currentStreak);
     button.classList.add("correct");
+    changeFlightSpeed(true);
   } else {
     stats.currentStreak = 0;
+    clearCheckpoint();
+    changeFlightSpeed(false);
     button.classList.add("wrong");
     for (const choice of document.querySelectorAll("#choices button")) {
       if (choice.textContent === current.correct_answer) {
@@ -148,22 +152,7 @@ function grade(button, answer) {
     choice.disabled = true;
   }
   saveJson(STATS_KEY, stats);
-  showFact();
   document.querySelector("#next-question").classList.remove("hidden");
-}
-
-function showFact() {
-  const fact = current.fact || `The correct answer is ${current.correct_answer}.`;
-  document.querySelector("#fact-text").textContent = fact;
-  const credit = document.querySelector("#fact-credit");
-  if (current.fact_source === "Wikipedia") {
-    credit.textContent = "From Wikipedia, CC BY-SA 4.0.";
-    credit.classList.remove("hidden");
-  } else {
-    credit.textContent = "";
-    credit.classList.add("hidden");
-  }
-  document.querySelector("#fact").classList.remove("hidden");
 }
 
 function accuracy() {
@@ -171,6 +160,36 @@ function accuracy() {
     return "—";
   }
   return `${Math.round((stats.correct / stats.answered) * 1000) / 10}%`;
+}
+
+const CHECKPOINTS = [
+  "Mars",
+  "Saturn",
+  "Pluto",
+  "Moon",
+  "Jupiter",
+  "Venus",
+  "Mercury",
+  "Neptune",
+  "Uranus",
+  "Sun",
+  "Asteroid",
+  "Comet",
+  "Eclipse",
+  "Nebula",
+  "Supernova",
+  "Black hole",
+  "Galaxy",
+  "Pulsar",
+  "Constellation",
+  "Quasar",
+];
+
+function checkpointName(level) {
+  if (!level || level < 1) {
+    return "—";
+  }
+  return CHECKPOINTS[Math.min(level, CHECKPOINTS.length) - 1];
 }
 
 function favoriteCategory() {
@@ -191,6 +210,7 @@ function renderStats() {
     ["Sessions", stats.sessions],
     ["Best session", stats.bestSession],
     ["Most played", favoriteCategory()],
+    ["Furthest checkpoint", checkpointName(stats.furthestCheckpoint)],
   ];
   const list = document.querySelector("#stat-list");
   list.replaceChildren();
@@ -257,17 +277,55 @@ function scheduleLoop(events, loopSeconds, generation) {
 }
 
 function classicalTune() {
-  // Beethoven's Ode to Joy, which is in the public domain.
-  const melody = [64, 64, 65, 67, 67, 65, 64, 62, 60, 60, 62, 64, 64, 62, 62];
+  // Beethoven's Ode to Joy, which is in the public domain, with a harmony and bass.
+  const melody = [
+    64, 64, 65, 67, 67, 65, 64, 62, 60, 60, 62, 64, 64, 62, 62, 62,
+    64, 64, 65, 67, 67, 65, 64, 62, 60, 60, 62, 64, 62, 60, 60, 60,
+  ];
+  const harmony = [
+    60, 60, 60, 64, 64, 60, 60, 59, 55, 55, 57, 60, 60, 59, 59, 59,
+    60, 60, 60, 64, 64, 60, 60, 59, 55, 55, 57, 60, 59, 55, 55, 55,
+  ];
   const events = [];
+  const step = 0.48;
   melody.forEach((note, index) => {
-    const held = index === 12 || index === 14 ? 0.9 : 0.42;
-    events.push({ note, time: index * 0.5, duration: held, wave: "triangle", volume: 0.18 });
+    const phraseEnd = index === 14 || index === 15 || index === 30 || index === 31;
+    const duration = phraseEnd ? 0.78 : 0.4;
+    events.push({ note, time: index * step, duration, wave: "triangle", volume: 0.16 });
+    events.push({ note: harmony[index], time: index * step, duration, wave: "sine", volume: 0.08 });
   });
-  for (const time of [0, 4, 8]) {
-    events.push({ note: 48, time, duration: 1.4, wave: "sine", volume: 0.08 });
+  const bass = [48, 43, 41, 43, 48, 43, 45, 41];
+  bass.forEach((note, index) => {
+    events.push({ note, time: index * step * 4, duration: 1.7, wave: "triangle", volume: 0.1 });
+  });
+  return { events, loopSeconds: melody.length * step + 0.35 };
+}
+
+function spaceTune() {
+  // An original chiptune loop: square-wave lead, arpeggio, and a short bass.
+  const events = [];
+  const bass = [33, 33, 40, 36, 33, 31, 29, 31];
+  bass.forEach((note, index) => {
+    events.push({ note, time: index * 0.5, duration: 0.28, wave: "square", volume: 0.07 });
+  });
+  const arp = [57, 60, 64, 67];
+  for (let step = 0; step < 16; step += 1) {
+    events.push({
+      note: arp[step % 4] + (step >= 8 ? 12 : 0),
+      time: step * 0.25,
+      duration: 0.11,
+      wave: "square",
+      volume: 0.04,
+    });
   }
-  return { events, loopSeconds: 8 };
+  const melody = [
+    [0, 76], [0.5, 79], [1, 81], [1.5, 84],
+    [2.25, 81], [2.75, 79], [3.25, 76], [3.75, 72],
+  ];
+  for (const [time, note] of melody) {
+    events.push({ note, time, duration: 0.32, wave: "square", volume: 0.055 });
+  }
+  return { events, loopSeconds: 4 };
 }
 
 function jazzTune() {
@@ -304,9 +362,10 @@ function startMusic(kind) {
   musicMaster = audioContext.createGain();
   musicMaster.connect(audioContext.destination);
 
-  if (kind === "jazz" || kind === "classical") {
-    musicMaster.gain.value = 0.9;
-    const tune = kind === "jazz" ? jazzTune() : classicalTune();
+  const tunes = { jazz: jazzTune, classical: classicalTune, space: spaceTune };
+  if (tunes[kind]) {
+    musicMaster.gain.value = kind === "space" ? 0.8 : 0.9;
+    const tune = tunes[kind]();
     scheduleLoop(tune.events, tune.loopSeconds, musicGeneration);
     return;
   }
@@ -373,14 +432,369 @@ for (const button of document.querySelectorAll("[data-music-choice]")) {
   button.classList.toggle("selected", button.dataset.musicChoice === settings.music);
 }
 
+const flightCanvas = document.querySelector("#flight");
+const flightCtx = flightCanvas.getContext("2d");
+let flightSpeed = Number(localStorage.getItem("trivia-flight-speed"));
+if (!Number.isFinite(flightSpeed) || flightSpeed <= 0) {
+  flightSpeed = 1;
+}
+
+function changeFlightSpeed(correct) {
+  if (correct) {
+    flightSpeed = Math.min(8, flightSpeed + 0.5);
+  } else {
+    flightSpeed = 1;
+  }
+  localStorage.setItem("trivia-flight-speed", String(flightSpeed));
+}
+
+function makeComet(anywhere) {
+  const width = flightCanvas.clientWidth || window.innerWidth;
+  const height = flightCanvas.clientHeight || window.innerHeight;
+  return {
+    x: anywhere ? Math.random() * width : width + 30,
+    y: 20 + Math.random() * Math.max(40, height - 40),
+    size: 1.4 + Math.random() * 2.4,
+    drift: 36 + Math.random() * 70,
+  };
+}
+
+const comets = Array.from({ length: 18 }, () => makeComet(true));
+const ufos = [];
+let nextUfoAt = performance.now() + 6000;
+let activeCheckpoint = null;
+let flightClock = 0;
+let flightLast = performance.now();
+
+function launchUfoVisit(width, height) {
+  const fromLeft = Math.random() < 0.5;
+  const direction = fromLeft ? 1 : -1;
+  for (let index = 0; index < 2; index += 1) {
+    ufos.push({
+      x: (fromLeft ? -110 : width + 110) - direction * index * 120,
+      y: 64 + Math.random() * Math.max(50, height * 0.42),
+      speed: direction * (62 + Math.random() * 28),
+      wobble: Math.random() * Math.PI * 2,
+    });
+  }
+}
+
+function drawUfo(ufo) {
+  const bob = Math.sin(flightClock * 2.4 + ufo.wobble) * 5;
+  const x = ufo.x;
+  const y = ufo.y + bob;
+  flightCtx.save();
+  flightCtx.fillStyle = "#c5d0de";
+  flightCtx.beginPath();
+  flightCtx.ellipse(x, y + 8, 30, 10, 0, 0, Math.PI * 2);
+  flightCtx.fill();
+  flightCtx.fillStyle = "#8ea0b8";
+  flightCtx.beginPath();
+  flightCtx.ellipse(x, y + 11, 18, 5, 0, 0, Math.PI);
+  flightCtx.fill();
+  flightCtx.fillStyle = "rgba(186, 230, 255, 0.62)";
+  flightCtx.beginPath();
+  flightCtx.arc(x, y + 2, 13, Math.PI, 0);
+  flightCtx.fill();
+  flightCtx.fillStyle = "#73c45d";
+  flightCtx.beginPath();
+  flightCtx.arc(x, y - 2, 6, 0, Math.PI * 2);
+  flightCtx.fill();
+  flightCtx.fillRect(x - 4, y + 2, 8, 6);
+  flightCtx.strokeStyle = "#73c45d";
+  flightCtx.lineWidth = 1.5;
+  flightCtx.beginPath();
+  flightCtx.moveTo(x - 3, y - 7);
+  flightCtx.lineTo(x - 5, y - 12);
+  flightCtx.moveTo(x + 3, y - 7);
+  flightCtx.lineTo(x + 5, y - 12);
+  flightCtx.stroke();
+  flightCtx.fillStyle = "#162016";
+  flightCtx.beginPath();
+  flightCtx.arc(x - 2.2, y - 3, 1.2, 0, Math.PI * 2);
+  flightCtx.arc(x + 2.2, y - 3, 1.2, 0, Math.PI * 2);
+  flightCtx.fill();
+  const blink = 0.45 + Math.sin(flightClock * 6 + ufo.wobble) * 0.55;
+  flightCtx.globalAlpha = blink;
+  flightCtx.fillStyle = "#f6d36b";
+  for (const dx of [-16, 0, 16]) {
+    flightCtx.beginPath();
+    flightCtx.arc(x + dx, y + 10, 1.8, 0, Math.PI * 2);
+    flightCtx.fill();
+  }
+  flightCtx.restore();
+}
+
+function noteCheckpoint(streak) {
+  if (streak < 1) {
+    activeCheckpoint = null;
+    return;
+  }
+  const level = Math.min(streak, CHECKPOINTS.length);
+  stats.furthestCheckpoint = Math.max(stats.furthestCheckpoint || 0, level);
+  activeCheckpoint = {
+    name: CHECKPOINTS[level - 1],
+    x: (flightCanvas.clientWidth || window.innerWidth) + 80,
+    y: 92,
+  };
+}
+
+function clearCheckpoint() {
+  activeCheckpoint = null;
+}
+
+function fillCircle(x, y, radius, color) {
+  flightCtx.fillStyle = color;
+  flightCtx.beginPath();
+  flightCtx.arc(x, y, radius, 0, Math.PI * 2);
+  flightCtx.fill();
+}
+
+function drawCheckpointGraphic(name, x, y) {
+  flightCtx.save();
+  flightCtx.translate(x, y);
+  flightCtx.scale(2.45, 2.45);
+  flightCtx.translate(-x, -y);
+  if (name === "Mars") {
+    fillCircle(x, y, 14, "#c4553a");
+    fillCircle(x - 4, y + 2, 3, "#a3432d");
+  } else if (name === "Saturn") {
+    fillCircle(x, y, 12, "#e6c98a");
+    flightCtx.strokeStyle = "#f0ddb0";
+    flightCtx.lineWidth = 2;
+    flightCtx.beginPath();
+    flightCtx.ellipse(x, y, 22, 7, -0.4, 0, Math.PI * 2);
+    flightCtx.stroke();
+  } else if (name === "Pluto") {
+    fillCircle(x, y, 8, "#c8c2b4");
+    fillCircle(x + 14, y - 6, 3, "#eeeae2");
+  } else if (name === "Moon") {
+    fillCircle(x, y, 13, "#f4efe4");
+    fillCircle(x - 4, y - 2, 3, "#d5ccbe");
+  } else if (name === "Jupiter") {
+    fillCircle(x, y, 16, "#d7a15a");
+    flightCtx.strokeStyle = "#f0d2a0";
+    flightCtx.lineWidth = 2;
+    flightCtx.beginPath();
+    flightCtx.moveTo(x - 12, y - 3);
+    flightCtx.lineTo(x + 12, y - 3);
+    flightCtx.moveTo(x - 14, y + 4);
+    flightCtx.lineTo(x + 13, y + 4);
+    flightCtx.stroke();
+  } else if (name === "Venus") {
+    fillCircle(x, y, 13, "#f0d58a");
+  } else if (name === "Mercury") {
+    fillCircle(x, y, 9, "#b7b1a8");
+    fillCircle(x + 2, y - 2, 2, "#8e8982");
+  } else if (name === "Neptune") {
+    fillCircle(x, y, 13, "#3d6fbf");
+  } else if (name === "Uranus") {
+    fillCircle(x, y, 12, "#b7e0e4");
+  } else if (name === "Sun") {
+    flightCtx.strokeStyle = "#f6d36b";
+    flightCtx.lineWidth = 2;
+    for (let ray = 0; ray < 8; ray += 1) {
+      const angle = (ray / 8) * Math.PI * 2;
+      flightCtx.beginPath();
+      flightCtx.moveTo(x + Math.cos(angle) * 12, y + Math.sin(angle) * 12);
+      flightCtx.lineTo(x + Math.cos(angle) * 20, y + Math.sin(angle) * 20);
+      flightCtx.stroke();
+    }
+    fillCircle(x, y, 10, "#ffe08a");
+  } else if (name === "Asteroid") {
+    flightCtx.fillStyle = "#9a8f84";
+    flightCtx.beginPath();
+    flightCtx.moveTo(x - 12, y);
+    flightCtx.lineTo(x - 4, y - 8);
+    flightCtx.lineTo(x + 10, y - 3);
+    flightCtx.lineTo(x + 6, y + 8);
+    flightCtx.lineTo(x - 8, y + 6);
+    flightCtx.closePath();
+    flightCtx.fill();
+  } else if (name === "Comet") {
+    flightCtx.strokeStyle = "#f4efe4";
+    flightCtx.lineWidth = 2;
+    flightCtx.beginPath();
+    flightCtx.moveTo(x, y);
+    flightCtx.lineTo(x + 28, y + 4);
+    flightCtx.stroke();
+    fillCircle(x, y, 5, "#fffaf0");
+  } else if (name === "Eclipse") {
+    fillCircle(x, y, 12, "#f6d36b");
+    fillCircle(x + 5, y, 11, "#1b1916");
+  } else if (name === "Nebula") {
+    flightCtx.globalAlpha = 0.45;
+    fillCircle(x - 6, y, 12, "#c47ad4");
+    fillCircle(x + 8, y - 2, 10, "#6aa8e8");
+    fillCircle(x, y + 4, 8, "#f0a0c0");
+    flightCtx.globalAlpha = 1;
+  } else if (name === "Supernova") {
+    flightCtx.strokeStyle = "#fff4c2";
+    flightCtx.lineWidth = 2;
+    flightCtx.beginPath();
+    flightCtx.moveTo(x - 16, y);
+    flightCtx.lineTo(x + 16, y);
+    flightCtx.moveTo(x, y - 16);
+    flightCtx.lineTo(x, y + 16);
+    flightCtx.moveTo(x - 11, y - 11);
+    flightCtx.lineTo(x + 11, y + 11);
+    flightCtx.stroke();
+    fillCircle(x, y, 4, "#fffaf0");
+  } else if (name === "Black hole") {
+    flightCtx.strokeStyle = "#f0b45a";
+    flightCtx.lineWidth = 3;
+    flightCtx.beginPath();
+    flightCtx.ellipse(x, y, 18, 6, 0.5, 0, Math.PI * 2);
+    flightCtx.stroke();
+    fillCircle(x, y, 7, "#120f0e");
+  } else if (name === "Galaxy") {
+    flightCtx.strokeStyle = "#d7c6ef";
+    flightCtx.lineWidth = 2;
+    flightCtx.beginPath();
+    flightCtx.ellipse(x, y, 18, 7, 0.6, 0, Math.PI * 2);
+    flightCtx.stroke();
+    fillCircle(x, y, 3, "#fffaf0");
+  } else if (name === "Pulsar") {
+    fillCircle(x, y, 4, "#fffaf0");
+    flightCtx.strokeStyle = "#9fd0ff";
+    flightCtx.lineWidth = 2;
+    flightCtx.beginPath();
+    flightCtx.moveTo(x - 20, y - 6);
+    flightCtx.lineTo(x + 20, y + 6);
+    flightCtx.moveTo(x - 20, y + 6);
+    flightCtx.lineTo(x + 20, y - 6);
+    flightCtx.stroke();
+  } else if (name === "Constellation") {
+    const stars = [[0, 0], [16, -8], [30, 2], [46, -4], [40, 14], [22, 16]];
+    flightCtx.strokeStyle = "#f7f1e4";
+    flightCtx.lineWidth = 1;
+    flightCtx.beginPath();
+    stars.forEach(([dx, dy], index) => {
+      if (index === 0) {
+        flightCtx.moveTo(x + dx, y + dy);
+      } else {
+        flightCtx.lineTo(x + dx, y + dy);
+      }
+    });
+    flightCtx.stroke();
+    for (const [dx, dy] of stars) {
+      fillCircle(x + dx, y + dy, 2, "#fffaf0");
+    }
+  } else if (name === "Quasar") {
+    fillCircle(x, y, 5, "#fff6d0");
+    flightCtx.strokeStyle = "#8fd0ff";
+    flightCtx.lineWidth = 2;
+    flightCtx.beginPath();
+    flightCtx.moveTo(x, y - 18);
+    flightCtx.lineTo(x, y + 18);
+    flightCtx.stroke();
+  }
+  flightCtx.restore();
+}
+
+function drawRocket(x, y, color) {
+  flightCtx.save();
+  flightCtx.translate(x, y);
+  flightCtx.fillStyle = color;
+  flightCtx.beginPath();
+  flightCtx.moveTo(16, 0);
+  flightCtx.lineTo(-12, -6);
+  flightCtx.lineTo(-7, 0);
+  flightCtx.lineTo(-12, 6);
+  flightCtx.closePath();
+  flightCtx.fill();
+  flightCtx.restore();
+}
+
+function drawFlight(now) {
+  const dt = Math.min(0.05, (now - flightLast) / 1000);
+  flightLast = now;
+  flightClock += dt * flightSpeed * 0.75;
+
+  const ratio = window.devicePixelRatio || 1;
+  const width = flightCanvas.clientWidth;
+  const height = flightCanvas.clientHeight;
+  if (flightCanvas.width !== Math.floor(width * ratio) || flightCanvas.height !== Math.floor(height * ratio)) {
+    flightCanvas.width = Math.floor(width * ratio);
+    flightCanvas.height = Math.floor(height * ratio);
+  }
+  flightCtx.setTransform(ratio, 0, 0, ratio, 0, 0);
+  flightCtx.clearRect(0, 0, width, height);
+
+  const styles = getComputedStyle(document.body);
+  const accent = styles.getPropertyValue("--accent").trim();
+  const text = styles.getPropertyValue("--text").trim();
+  const muted = styles.getPropertyValue("--muted").trim();
+
+  flightCtx.lineWidth = 1.5;
+  for (const comet of comets) {
+    comet.x -= comet.drift * flightSpeed * dt;
+    if (comet.x < -28) {
+      Object.assign(comet, makeComet(false));
+    }
+    flightCtx.globalAlpha = 0.35;
+    flightCtx.strokeStyle = muted;
+    flightCtx.beginPath();
+    flightCtx.moveTo(comet.x, comet.y);
+    flightCtx.lineTo(comet.x + 14 + comet.size * 4, comet.y);
+    flightCtx.stroke();
+    flightCtx.globalAlpha = 0.8;
+    flightCtx.fillStyle = text;
+    flightCtx.beginPath();
+    flightCtx.arc(comet.x, comet.y, comet.size, 0, Math.PI * 2);
+    flightCtx.fill();
+  }
+
+  if (now >= nextUfoAt) {
+    launchUfoVisit(width, height);
+    nextUfoAt = now + (170 + Math.random() * 50) * 1000;
+  }
+  flightCtx.globalAlpha = 0.92;
+  for (let index = ufos.length - 1; index >= 0; index -= 1) {
+    const ufo = ufos[index];
+    ufo.x += ufo.speed * dt;
+    drawUfo(ufo);
+    if (ufo.x < -160 || ufo.x > width + 160) {
+      ufos.splice(index, 1);
+    }
+  }
+
+  if (activeCheckpoint) {
+    const wide = activeCheckpoint.name === "Constellation";
+    const dockX = width - (wide ? 156 : 84);
+    const dockY = 92;
+    const glide = Math.min(1, dt * 1.4);
+    activeCheckpoint.x += (dockX - activeCheckpoint.x) * glide;
+    activeCheckpoint.y += (dockY - activeCheckpoint.y) * glide;
+    flightCtx.globalAlpha = 0.95;
+    drawCheckpointGraphic(activeCheckpoint.name, activeCheckpoint.x, activeCheckpoint.y);
+  }
+
+  const rocketX = width * 0.28 + Math.sin(flightClock * 0.65) * width * 0.24;
+  const rocketY = height * 0.48 + Math.sin(flightClock * 1.05) * height * 0.3;
+  drawRocket(rocketX, rocketY, accent);
+
+  const tracker = checkpointName(stats.currentStreak);
+  if (tracker !== "—") {
+    flightCtx.globalAlpha = 0.9;
+    flightCtx.fillStyle = text;
+    flightCtx.font = "15px Segoe UI, sans-serif";
+    flightCtx.textAlign = "right";
+    flightCtx.textBaseline = "top";
+    flightCtx.fillText(tracker, width - 16, 6);
+  }
+  flightCtx.globalAlpha = 1;
+
+  requestAnimationFrame(drawFlight);
+}
+
+requestAnimationFrame(drawFlight);
+
 fetch("questions.json")
   .then((response) => response.json())
   .then((loaded) => {
     questions = loaded;
-    document.querySelector("#bank-size").textContent =
-      `${questions.length.toLocaleString()} questions in the bank`;
   })
   .catch(() => {
-    document.querySelector("#bank-size").textContent =
-      "The question bank could not be loaded.";
+    questions = [];
   });

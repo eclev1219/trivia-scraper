@@ -3,23 +3,24 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Trivia</title>
+  <title>Trivianaut</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body data-theme="ink">
   <main>
     <section id="home" class="screen">
-      <p class="eyebrow">Offline</p>
-      <h1>Trivia</h1>
-      <p id="bank-size" class="lede">Loading questions…</p>
+      <h1>Trivianaut</h1>
       <div class="stack">
         <button type="button" id="open-stats">Lifetime stats</button>
         <button type="button" id="open-trivia" class="primary">Trivia</button>
         <button type="button" id="open-settings">Settings</button>
       </div>
       <p class="credit">
-        Questions from the Open Trivia Database, CC BY-SA 4.0.
-        https://opentdb.com. Answer notes from Wikipedia, CC BY-SA 4.0.
+        Questions from the Open Trivia Database, CC BY-SA 4.0
+        (https://opentdb.com), plus original questions written for this app.
+      </p>
+      <p class="credit credit-more">
+        Also The Trivia API, CC BY-NC 4.0. https://the-trivia-api.com
       </p>
     </section>
 
@@ -28,11 +29,6 @@
       <p id="question-meta" class="eyebrow"></p>
       <h2 id="question-text"></h2>
       <div id="choices" class="stack"></div>
-      <aside id="fact" class="fact hidden">
-        <p class="eyebrow">About the answer</p>
-        <p id="fact-text"></p>
-        <p id="fact-credit" class="credit"></p>
-      </aside>
       <button type="button" id="next-question" class="primary hidden">Next question</button>
     </section>
 
@@ -62,10 +58,12 @@
         <button type="button" data-music-choice="soft">Soft hum</button>
         <button type="button" data-music-choice="bright">Bright hum</button>
         <button type="button" data-music-choice="jazz">Jazz</button>
+        <button type="button" data-music-choice="space">Retro space</button>
         <button type="button" data-music-choice="classical">Classical</button>
       </div>
     </section>
   </main>
+  <canvas id="flight" aria-label="Rocket speed"></canvas>
   <script src="app.js"></script>
 </body>
 </html>

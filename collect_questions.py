@@ -47,8 +47,6 @@ def to_record(item):
         "correct_answer": correct,
         "incorrect_answers": incorrect,
         "source": "Open Trivia DB",
-        "fact": "",
-        "fact_source": "",
     }
 
 
