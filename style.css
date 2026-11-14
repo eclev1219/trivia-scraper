@@ -1,0 +1,259 @@
+:root {
+  color-scheme: dark;
+  --bg: #1b1916;
+  --text: #f3ecdf;
+  --muted: #b7ab9b;
+  --card: #2a261f;
+  --card-line: #3d362c;
+  --accent: #e4b183;
+  --accent-text: #1b1916;
+  --good: #8fbf9f;
+  --bad: #d9897b;
+}
+
+body[data-theme="paper"] {
+  color-scheme: light;
+  --bg: #f3ecdf;
+  --text: #1b1916;
+  --muted: #6d6256;
+  --card: #fffaf3;
+  --card-line: #e2d5c3;
+  --accent: #9a3412;
+  --accent-text: #fffaf3;
+  --good: #1f7a4d;
+  --bad: #9f1239;
+}
+
+body[data-theme="lagoon"] {
+  color-scheme: dark;
+  --bg: #102422;
+  --text: #e7f4f1;
+  --muted: #9ec4bc;
+  --card: #173330;
+  --card-line: #24534d;
+  --accent: #d5c07a;
+  --accent-text: #102422;
+  --good: #8fcebf;
+  --bad: #e3a598;
+}
+
+body[data-theme="forest"] {
+  color-scheme: dark;
+  --bg: #142117;
+  --text: #e7f2e4;
+  --muted: #a3c2aa;
+  --card: #1d3124;
+  --card-line: #2f4a38;
+  --accent: #d6c07a;
+  --accent-text: #142117;
+  --good: #9dcea8;
+  --bad: #e3a598;
+}
+
+body[data-theme="dusk"] {
+  color-scheme: dark;
+  --bg: #1a1730;
+  --text: #f0ecff;
+  --muted: #b7b0d4;
+  --card: #262246;
+  --card-line: #3d3768;
+  --accent: #f0b7a4;
+  --accent-text: #1a1730;
+  --good: #9ed4c4;
+  --bad: #f0a0b4;
+}
+
+body[data-theme="rose"] {
+  color-scheme: light;
+  --bg: #f8ecec;
+  --text: #2a1618;
+  --muted: #8a5c62;
+  --card: #fff7f6;
+  --card-line: #edd4d4;
+  --accent: #9f3040;
+  --accent-text: #fff7f6;
+  --good: #1f7a4d;
+  --bad: #9f1239;
+}
+
+body[data-theme="ember"] {
+  color-scheme: dark;
+  --bg: #241410;
+  --text: #f8efe8;
+  --muted: #cbb0a2;
+  --card: #34201a;
+  --card-line: #5a382c;
+  --accent: #e07a3d;
+  --accent-text: #241410;
+  --good: #9dcea8;
+  --bad: #e7a09a;
+}
+
+body[data-theme="glacier"] {
+  color-scheme: light;
+  --bg: #e7f0f4;
+  --text: #102028;
+  --muted: #4d6874;
+  --card: #f7fbfd;
+  --card-line: #c9dbe3;
+  --accent: #0f5f78;
+  --accent-text: #f7fbfd;
+  --good: #1f7a4d;
+  --bad: #9f1239;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Segoe UI", sans-serif;
+}
+
+main {
+  width: min(34rem, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: 2.5rem 0 3rem;
+}
+
+h1, h2, p {
+  margin-top: 0;
+}
+
+h1 {
+  font-family: Palatino, "Palatino Linotype", Georgia, serif;
+  font-size: 3.25rem;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  line-height: 0.95;
+}
+
+h2 {
+  font-family: Palatino, "Palatino Linotype", Georgia, serif;
+  font-size: 1.7rem;
+  font-weight: 500;
+  line-height: 1.25;
+}
+
+.eyebrow, .lede, .credit {
+  color: var(--muted);
+}
+
+.lede {
+  font-size: 1.05rem;
+}
+
+.credit {
+  margin-top: 2.5rem;
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
+
+.stack, .choices {
+  display: grid;
+  gap: 0.75rem;
+}
+
+button {
+  border: 1px solid var(--card-line);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  padding: 0.95rem 1.15rem;
+  cursor: pointer;
+}
+
+button.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-text);
+  font-weight: 650;
+}
+
+button.text-button {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  padding: 0 0 1.25rem;
+}
+
+button:disabled {
+  cursor: default;
+}
+
+button.correct {
+  border-color: var(--good);
+  color: var(--good);
+}
+
+button.wrong {
+  border-color: var(--bad);
+  color: var(--bad);
+}
+
+button.selected {
+  border-color: var(--accent);
+}
+
+.hidden {
+  display: none;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.stats div {
+  background: var(--card);
+  border-radius: 1rem;
+  padding: 1rem;
+}
+
+.stats dt {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.stats dd {
+  margin: 0.35rem 0 0;
+  font-family: Palatino, "Palatino Linotype", Georgia, serif;
+  font-size: 1.8rem;
+  overflow-wrap: anywhere;
+}
+
+.fact {
+  margin-top: 0.9rem;
+  background: var(--card);
+  border-radius: 1rem;
+  padding: 1rem 1.1rem 0.2rem;
+}
+
+.fact p {
+  line-height: 1.45;
+}
+
+.fact .credit {
+  margin-top: 0.8rem;
+}
+
+#next-question {
+  margin-top: 0.75rem;
+}
+
+@media (max-width: 640px) {
+  h1 {
+    font-size: 2.6rem;
+  }
+
+  main {
+    padding-top: 1.5rem;
+  }
+}

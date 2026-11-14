@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Trivia</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body data-theme="ink">
+  <main>
+    <section id="home" class="screen">
+      <p class="eyebrow">Offline</p>
+      <h1>Trivia</h1>
+      <p id="bank-size" class="lede">Loading questions…</p>
+      <div class="stack">
+        <button type="button" id="open-stats">Lifetime stats</button>
+        <button type="button" id="open-trivia" class="primary">Trivia</button>
+        <button type="button" id="open-settings">Settings</button>
+      </div>
+      <p class="credit">
+        Questions from the Open Trivia Database, CC BY-SA 4.0.
+        https://opentdb.com. Answer notes from Wikipedia, CC BY-SA 4.0.
+      </p>
+    </section>
+
+    <section id="trivia" class="screen hidden">
+      <button type="button" class="text-button" id="trivia-home">Home</button>
+      <p id="question-meta" class="eyebrow"></p>
+      <h2 id="question-text"></h2>
+      <div id="choices" class="stack"></div>
+      <aside id="fact" class="fact hidden">
+        <p class="eyebrow">About the answer</p>
+        <p id="fact-text"></p>
+        <p id="fact-credit" class="credit"></p>
+      </aside>
+      <button type="button" id="next-question" class="primary hidden">Next question</button>
+    </section>
+
+    <section id="stats" class="screen hidden">
+      <button type="button" class="text-button" id="stats-home">Home</button>
+      <h1>Lifetime stats</h1>
+      <dl id="stat-list" class="stats"></dl>
+    </section>
+
+    <section id="settings" class="screen hidden">
+      <button type="button" class="text-button" id="settings-home">Home</button>
+      <h1>Settings</h1>
+      <h2>Color</h2>
+      <div class="choices" id="theme-choices">
+        <button type="button" data-theme-choice="ink">Ink</button>
+        <button type="button" data-theme-choice="paper">Paper</button>
+        <button type="button" data-theme-choice="lagoon">Lagoon</button>
+        <button type="button" data-theme-choice="forest">Forest</button>
+        <button type="button" data-theme-choice="dusk">Dusk</button>
+        <button type="button" data-theme-choice="rose">Rose</button>
+        <button type="button" data-theme-choice="ember">Ember</button>
+        <button type="button" data-theme-choice="glacier">Glacier</button>
+      </div>
+      <h2>Music</h2>
+      <div class="choices" id="music-choices">
+        <button type="button" data-music-choice="off">Off</button>
+        <button type="button" data-music-choice="soft">Soft hum</button>
+        <button type="button" data-music-choice="bright">Bright hum</button>
+        <button type="button" data-music-choice="jazz">Jazz</button>
+        <button type="button" data-music-choice="classical">Classical</button>
+      </div>
+    </section>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
