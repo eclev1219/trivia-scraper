@@ -1,0 +1,48 @@
+const CACHE = "trivianaut-v17";
+const FILES = [
+  "./",
+  "./index.html",
+  "./style.css",
+  "./app.js",
+  "./briefings.js",
+  "./fonts/fredoka-latin.woff2",
+  "./fonts/fredoka-latin-ext.woff2",
+  "./fonts/lilita-latin.woff2",
+  "./fonts/lilita-latin-ext.woff2",
+  "./questions.json",
+  "./manifest.webmanifest",
+  "./icon-192.png",
+  "./icon-512.png",
+];
+
+self.addEventListener("install", (event) => {
+  event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(FILES)));
+  self.skipWaiting();
+});
+
+self.addEventListener("activate", (event) => {
+  event.waitUntil(
+    caches.keys()
+      .then((keys) => Promise.all(
+        keys.filter((key) => key !== CACHE).map((key) => caches.delete(key)),
+      ))
+      .then(() => self.clients.claim()),
+  );
+});
+
+self.addEventListener("fetch", (event) => {
+  if (event.request.method !== "GET") {
+    return;
+  }
+  event.respondWith(
+    fetch(event.request)
+      .then((response) => {
+        if (response.ok) {
+          const copy = response.clone();
+          caches.open(CACHE).then((cache) => cache.put(event.request, copy));
+        }
+        return response;
+      })
+      .catch(() => caches.match(event.request)),
+  );
+});

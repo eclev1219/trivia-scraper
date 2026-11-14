@@ -1,3 +1,39 @@
+@font-face {
+  font-family: Fredoka;
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+  src: url("fonts/fredoka-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: Fredoka;
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+  src: url("fonts/fredoka-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Lilita One";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("fonts/lilita-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "Lilita One";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("fonts/lilita-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
 :root {
   color-scheme: dark;
   --bg: #1b1916;
@@ -5,8 +41,8 @@
   --muted: #b7ab9b;
   --card: #2a261f;
   --card-line: #3d362c;
-  --accent: #e4b183;
-  --accent-text: #1b1916;
+  --accent: #8ec8f0;
+  --accent-text: #142018;
   --good: #8fbf9f;
   --bad: #d9897b;
 }
@@ -18,8 +54,8 @@ body[data-theme="paper"] {
   --muted: #6d6256;
   --card: #fffaf3;
   --card-line: #e2d5c3;
-  --accent: #9a3412;
-  --accent-text: #fffaf3;
+  --accent: #6e3b28;
+  --accent-text: #fff6e8;
   --good: #1f7a4d;
   --bad: #9f1239;
 }
@@ -31,7 +67,7 @@ body[data-theme="lagoon"] {
   --muted: #9ec4bc;
   --card: #173330;
   --card-line: #24534d;
-  --accent: #d5c07a;
+  --accent: #e4d3a1;
   --accent-text: #102422;
   --good: #8fcebf;
   --bad: #e3a598;
@@ -44,7 +80,7 @@ body[data-theme="forest"] {
   --muted: #a3c2aa;
   --card: #1d3124;
   --card-line: #2f4a38;
-  --accent: #d6c07a;
+  --accent: #e0c48a;
   --accent-text: #142117;
   --good: #9dcea8;
   --bad: #e3a598;
@@ -70,7 +106,7 @@ body[data-theme="rose"] {
   --muted: #8a5c62;
   --card: #fff7f6;
   --card-line: #edd4d4;
-  --accent: #9f3040;
+  --accent: #4f6f66;
   --accent-text: #fff7f6;
   --good: #1f7a4d;
   --bad: #9f1239;
@@ -83,7 +119,7 @@ body[data-theme="ember"] {
   --muted: #cbb0a2;
   --card: #34201a;
   --card-line: #5a382c;
-  --accent: #e07a3d;
+  --accent: #a9c4d4;
   --accent-text: #241410;
   --good: #9dcea8;
   --bad: #e7a09a;
@@ -96,7 +132,7 @@ body[data-theme="glacier"] {
   --muted: #4d6874;
   --card: #f7fbfd;
   --card-line: #c9dbe3;
-  --accent: #0f5f78;
+  --accent: #8f5e4a;
   --accent-text: #f7fbfd;
   --good: #1f7a4d;
   --bad: #9f1239;
@@ -109,9 +145,12 @@ body[data-theme="glacier"] {
 body {
   margin: 0;
   min-height: 100vh;
+  min-height: 100dvh;
   background: var(--bg);
   color: var(--text);
-  font-family: "Segoe UI", sans-serif;
+  font-family: Fredoka, "Segoe UI", sans-serif;
+  font-weight: 500;
+  line-height: 1.4;
 }
 
 main {
@@ -119,7 +158,7 @@ main {
   z-index: 1;
   width: min(34rem, calc(100% - 2rem));
   margin: 0 auto;
-  padding: 2.5rem 0 3rem;
+  padding: max(2.5rem, env(safe-area-inset-top)) 0 max(3rem, env(safe-area-inset-bottom));
 }
 
 #flight {
@@ -137,18 +176,43 @@ h1, h2, p {
 }
 
 h1 {
-  font-family: Palatino, "Palatino Linotype", Georgia, serif;
-  font-size: 3.25rem;
-  font-weight: 500;
-  letter-spacing: -0.03em;
-  line-height: 0.95;
+  font-family: "Lilita One", Fredoka, sans-serif;
+  font-size: clamp(2.35rem, 8vw, 3rem);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  line-height: 1;
+}
+
+#home h1 {
+  display: inline-block;
+  margin-bottom: 0.85rem;
+  color: #fff6e8;
+  font-size: clamp(3rem, 13vw, 4.5rem);
+  line-height: 0.86;
+  letter-spacing: 0.01em;
+  transform: rotate(-2.5deg);
+  transform-origin: left center;
+  text-shadow:
+    0.055em 0.06em 0 var(--accent),
+    0.11em 0.12em 0 color-mix(in srgb, var(--accent) 58%, #141210);
+}
+
+#home h1::after {
+  content: "★";
+  display: inline-block;
+  margin-left: 0.08em;
+  color: var(--accent);
+  font-size: 0.38em;
+  text-shadow: none;
+  transform: translateY(-0.85em) rotate(14deg);
 }
 
 h2 {
-  font-family: Palatino, "Palatino Linotype", Georgia, serif;
-  font-size: 1.7rem;
-  font-weight: 500;
-  line-height: 1.25;
+  font-family: Fredoka, "Segoe UI", sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: 1.28;
 }
 
 #question-text {
@@ -157,6 +221,13 @@ h2 {
 
 .eyebrow, .lede, .credit {
   color: var(--muted);
+}
+
+.eyebrow {
+  font-weight: 700;
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 .lede {
@@ -169,19 +240,46 @@ h2 {
   line-height: 1.45;
 }
 
-#home .credit {
-  color: color-mix(in srgb, var(--text) 4%, var(--bg));
-  font-size: 0.75rem;
+.home-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100dvh - max(2.5rem, env(safe-area-inset-top)) - max(3rem, env(safe-area-inset-bottom)));
+}
+
+.home-credits {
+  margin-top: auto;
+  padding-top: 1.4rem;
+  pointer-events: none;
+}
+
+#home .credit,
+#home .credit-more {
+  margin-top: 0;
+  color: color-mix(in srgb, var(--text) 3%, var(--bg));
+  font-size: 0.28rem;
+  line-height: 1.15;
 }
 
 #home .credit-more {
-  margin-top: 0.2rem;
-  font-size: 0.62rem;
+  margin-top: 0.04rem;
 }
 
 .stack, .choices {
   display: grid;
   gap: 0.75rem;
+}
+
+#music-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+#music-choices button {
+  width: auto;
+  min-height: 2.5rem;
+  padding: 0.45rem 0.9rem;
+  text-align: center;
 }
 
 button {
@@ -192,6 +290,8 @@ button {
   background: color-mix(in srgb, var(--card) 88%, transparent);
   color: var(--text);
   font: inherit;
+  font-weight: 600;
+  letter-spacing: 0.01em;
   text-align: left;
   padding: 0.95rem 1.15rem;
   cursor: pointer;
@@ -201,7 +301,7 @@ button.primary {
   background: color-mix(in srgb, var(--accent) 90%, transparent);
   border-color: var(--accent);
   color: var(--accent-text);
-  font-weight: 650;
+  font-weight: 700;
 }
 
 button.text-button {
@@ -252,21 +352,220 @@ button.selected {
 
 .stats dd {
   margin: 0.35rem 0 0;
-  font-family: Palatino, "Palatino Linotype", Georgia, serif;
-  font-size: 1.8rem;
+  font-family: Fredoka, "Segoe UI", sans-serif;
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1.15;
   overflow-wrap: anywhere;
 }
 
-#next-question {
+#next-question,
+#daily-submit {
   margin-top: 0.75rem;
 }
 
+.rank {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.rank li {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.75rem;
+  align-items: center;
+  background: color-mix(in srgb, var(--card) 88%, transparent);
+  border: 1px solid var(--card-line);
+  border-radius: 1rem;
+  padding: 0.75rem 0.85rem;
+}
+
+.rank .spot {
+  font-family: "Lilita One", Fredoka, sans-serif;
+  font-size: 1.35rem;
+  color: var(--accent);
+}
+
+.rank .fact {
+  display: block;
+  margin-top: 0.15rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.rank .moves {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.rank .moves button {
+  min-height: 0;
+  padding: 0.15rem 0.7rem;
+  text-align: center;
+}
+
+.rank li.correct {
+  border-color: var(--good);
+}
+
+.rank li.wrong {
+  border-color: var(--bad);
+}
+
+.reward {
+  margin: 0.9rem 0 0;
+  line-height: 1.4;
+}
+
+.briefing {
+  margin: 0.7rem 0 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.catalog {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.catalog article,
+.catalog button.card {
+  background: var(--card);
+  border: 1px solid var(--card-line);
+  border-radius: 1rem;
+  padding: 0.75rem;
+  min-height: 0;
+  text-align: left;
+}
+
+.catalog button.card.selected {
+  border-color: var(--accent);
+}
+
+.catalog .locked {
+  opacity: 0.55;
+}
+
+.catalog canvas {
+  width: 100%;
+  height: 72px;
+  display: block;
+}
+
+.catalog h3 {
+  margin: 0.35rem 0 0;
+  font-family: Fredoka, "Segoe UI", sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.catalog p {
+  margin: 0.25rem 0 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+  line-height: 1.35;
+}
+
+.reveal {
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  padding: 1.25rem;
+  background: color-mix(in srgb, var(--bg) 78%, transparent);
+}
+
+.reveal.hidden {
+  display: none;
+}
+
+.reveal-card {
+  width: min(22rem, 100%);
+  background: var(--card);
+  border: 1px solid var(--card-line);
+  border-radius: 1.4rem;
+  padding: 1rem 1rem 1.15rem;
+  text-align: center;
+}
+
+.reveal.celebrate .reveal-card {
+  animation: reveal-pop 0.55s cubic-bezier(0.18, 1.35, 0.36, 1);
+}
+
+.reveal.shrug .reveal-card {
+  animation: reveal-sigh 0.65s ease;
+}
+
+.reveal canvas {
+  width: 100%;
+  height: 180px;
+  display: block;
+}
+
+.reveal h2 {
+  margin: 0.15rem 0 0;
+}
+
+.reveal-card p {
+  margin: 0.45rem 0 0;
+  color: var(--muted);
+}
+
+.reveal.celebrate #reveal-kicker {
+  color: var(--accent);
+}
+
+@keyframes reveal-pop {
+  0% { transform: scale(0.82) rotate(-3deg); }
+  100% { transform: none; }
+}
+
+@keyframes reveal-sigh {
+  0% { transform: translateY(14px) rotate(1.5deg); }
+  100% { transform: none; }
+}
+
 @media (max-width: 640px) {
-  h1 {
-    font-size: 2.6rem;
+  main {
+    padding-top: max(1.5rem, env(safe-area-inset-top));
   }
 
-  main {
-    padding-top: 1.5rem;
+  .home-layout {
+    min-height: calc(100dvh - max(1.5rem, env(safe-area-inset-top)) - max(3rem, env(safe-area-inset-bottom)));
+  }
+
+  #home h1 {
+    margin-bottom: 0.45rem;
+    font-size: clamp(2.7rem, 12vw, 3.4rem);
+  }
+
+  #home .stack {
+    gap: 0.5rem;
+  }
+
+  #home .stack button {
+    min-height: 2.65rem;
+    padding-top: 0.45rem;
+    padding-bottom: 0.45rem;
+  }
+
+  #question-text {
+    padding-right: 5.25rem;
+  }
+
+  button {
+    min-height: 3rem;
+  }
+
+  .rank .moves button {
+    min-height: 2.1rem;
   }
 }

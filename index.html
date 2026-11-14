@@ -2,26 +2,44 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#1b1916">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Trivianaut">
   <title>Trivianaut</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon-192.png">
+  <link rel="apple-touch-icon" href="icon-192.png">
   <link rel="stylesheet" href="style.css">
 </head>
 <body data-theme="ink">
   <main>
     <section id="home" class="screen">
-      <h1>Trivianaut</h1>
-      <div class="stack">
-        <button type="button" id="open-stats">Lifetime stats</button>
-        <button type="button" id="open-trivia" class="primary">Trivia</button>
-        <button type="button" id="open-settings">Settings</button>
+      <div class="home-layout">
+        <h1>Trivianaut</h1>
+        <p id="dust-home" class="eyebrow">0 space dust</p>
+        <div class="stack">
+          <button type="button" id="open-stats">Lifetime stats</button>
+          <button type="button" id="open-trivia" class="primary">Trivia</button>
+          <button type="button" id="open-daily">Daily challenge</button>
+          <button type="button" id="open-shop">Shop</button>
+          <button type="button" id="open-hangar">Hangar</button>
+          <button type="button" id="open-species">Species book</button>
+          <button type="button" id="open-settings">Settings</button>
+        </div>
+        <div class="home-credits">
+          <p class="credit">
+            Questions from the Open Trivia Database, CC BY-SA 4.0
+            (https://opentdb.com), plus original questions written for this app.
+          </p>
+          <p class="credit credit-more">
+            Also The Trivia API, CC BY-NC 4.0. https://the-trivia-api.com
+            SciQ science questions, CC BY-NC 3.0, Allen Institute for AI.
+            Some questions use Wikidata facts, CC0.
+          </p>
+        </div>
       </div>
-      <p class="credit">
-        Questions from the Open Trivia Database, CC BY-SA 4.0
-        (https://opentdb.com), plus original questions written for this app.
-      </p>
-      <p class="credit credit-more">
-        Also The Trivia API, CC BY-NC 4.0. https://the-trivia-api.com
-      </p>
     </section>
 
     <section id="trivia" class="screen hidden">
@@ -29,13 +47,47 @@
       <p id="question-meta" class="eyebrow"></p>
       <h2 id="question-text"></h2>
       <div id="choices" class="stack"></div>
+      <p id="reward" class="reward hidden"></p>
+      <p id="briefing" class="briefing hidden"></p>
       <button type="button" id="next-question" class="primary hidden">Next question</button>
+    </section>
+
+    <section id="daily" class="screen hidden">
+      <button type="button" class="text-button" id="daily-home">Home</button>
+      <p id="daily-date" class="eyebrow"></p>
+      <h1>Daily challenge</h1>
+      <p id="daily-prompt" class="lede"></p>
+      <ol id="daily-rank" class="rank"></ol>
+      <p id="daily-note" class="reward hidden"></p>
+      <button type="button" id="daily-submit" class="primary">Check order</button>
     </section>
 
     <section id="stats" class="screen hidden">
       <button type="button" class="text-button" id="stats-home">Home</button>
       <h1>Lifetime stats</h1>
       <dl id="stat-list" class="stats"></dl>
+    </section>
+
+    <section id="species" class="screen hidden">
+      <button type="button" class="text-button" id="species-home">Home</button>
+      <h1>Species book</h1>
+      <p id="alien-count" class="lede"></p>
+      <div id="alien-book" class="catalog"></div>
+    </section>
+
+    <section id="shop" class="screen hidden">
+      <button type="button" class="text-button" id="shop-home">Home</button>
+      <h1>Shop</h1>
+      <p id="dust-shop" class="lede">0 space dust</p>
+      <button type="button" id="buy-box" class="primary">Mystery box · 100 dust</button>
+      <p id="shop-note" class="reward hidden"></p>
+    </section>
+
+    <section id="hangar" class="screen hidden">
+      <button type="button" class="text-button" id="hangar-home">Home</button>
+      <h1>Hangar</h1>
+      <p class="lede">Tap a ship to fly it.</p>
+      <div id="ship-book" class="catalog"></div>
     </section>
 
     <section id="settings" class="screen hidden">
@@ -60,10 +112,24 @@
         <button type="button" data-music-choice="jazz">Jazz</button>
         <button type="button" data-music-choice="space">Retro space</button>
         <button type="button" data-music-choice="classical">Classical</button>
+        <button type="button" data-music-choice="lofi">Lofi</button>
+        <button type="button" data-music-choice="rain">Rain</button>
+        <button type="button" data-music-choice="bossa">Bossa</button>
+        <button type="button" data-music-choice="night">Night</button>
       </div>
     </section>
   </main>
   <canvas id="flight" aria-label="Rocket speed"></canvas>
+  <div id="reveal" class="reveal hidden">
+    <div class="reveal-card">
+      <p id="reveal-kicker" class="eyebrow"></p>
+      <canvas id="reveal-stage" width="280" height="180" aria-hidden="true"></canvas>
+      <h2 id="reveal-title"></h2>
+      <p id="reveal-note"></p>
+      <button type="button" id="reveal-close" class="primary">Continue</button>
+    </div>
+  </div>
+  <script src="briefings.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

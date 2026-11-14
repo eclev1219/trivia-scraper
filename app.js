@@ -1,10 +1,17 @@
 const STATS_KEY = "trivia-stats";
 const SETTINGS_KEY = "trivia-settings";
 
+const DAILY_KEY = "trivia-daily";
+const DAILY_DUST = 5;
+
 const screens = {
   home: document.querySelector("#home"),
   trivia: document.querySelector("#trivia"),
+  daily: document.querySelector("#daily"),
   stats: document.querySelector("#stats"),
+  species: document.querySelector("#species"),
+  shop: document.querySelector("#shop"),
+  hangar: document.querySelector("#hangar"),
   settings: document.querySelector("#settings"),
 };
 
@@ -24,7 +31,82 @@ let stats = loadJson(STATS_KEY, {
   bestSession: 0,
   furthestCheckpoint: 0,
   categories: {},
+  dust: 0,
+  aliens: [],
+  ships: ["dart"],
+  ship: "dart",
 });
+
+const BOX_COST = 100;
+const DUPLICATE_REFUND = 40;
+
+const ALIENS = [
+  { id: "blobby", name: "Blobby McFloat", rarity: "common", note: "A polite sphere who apologizes to asteroids." },
+  { id: "noodle", name: "Noodle Neck", rarity: "common", note: "The neck arrived three weeks before the rest of him." },
+  { id: "whiskers", name: "Captain Whiskers", rarity: "uncommon", note: "Claims to be a captain. The helmet is a yogurt lid." },
+  { id: "square", name: "Square Dad", rarity: "uncommon", note: "Says he is a rectangle, actually, then laughs too long." },
+  { id: "honk", name: "The Honk", rarity: "rare", note: "Honks in Morse code. Nobody has translated one." },
+  { id: "dave", name: "Orbit Dave", rarity: "rare", note: "His head is a tiny planet. The moon is a freeloader." },
+  { id: "glitter", name: "Glitter Goblin", rarity: "legendary", note: "Leaves sparkles in the airlock and denies everything." },
+  { id: "gloop", name: "Empress Gloop", rarity: "legendary", note: "Rules a damp moon. The crown keeps sliding off." },
+  { id: "pip", name: "Pip", rarity: "common", note: "A triangle who insists triangles are the friendly shape." },
+  { id: "moth", name: "Marge the Moth", rarity: "common", note: "Flew into a station porch light and never left." },
+  { id: "beak", name: "Professor Beak", rarity: "uncommon", note: "The lecture slides are just the word HONK." },
+  { id: "sock", name: "Sock Steve", rarity: "uncommon", note: "Steve is a sock. Steve has dreams." },
+  { id: "croissant", name: "Count Croissant", rarity: "rare", note: "A pastry count. The crumbs are a navigation hazard." },
+  { id: "lantern", name: "Lady Lantern", rarity: "rare", note: "Lights the way, then asks if you brought snacks." },
+  { id: "shedeur", name: "Shedeur", rarity: "rare", note: "Browns No. 2, an AP on the wrist, and a smile wider than the end zone." },
+  { id: "kevin", name: "Kevin", rarity: "rare", note: "Two eyes, blue overalls, and a grin that survives reentry." },
+  { id: "wobble", name: "King Wobble", rarity: "legendary", note: "Three blobs in a trench coat, and a crown." },
+  { id: "quiet", name: "The Quiet Comet", rarity: "legendary", note: "Says nothing. The silence is very loud." },
+];
+
+const SHIPS = [
+  { id: "dart", name: "Dart", rarity: "common", note: "The first ship. Pointy, proud, slightly used." },
+  { id: "saucer", name: "Saucer Scout", rarity: "common", note: "A rental saucer with one cup holder." },
+  { id: "pencil", name: "Pencil Rocket", rarity: "uncommon", note: "Writes its name on the sky. The eraser still works." },
+  { id: "teapot", name: "Teapot", rarity: "uncommon", note: "Short trips only. The spout whistles at light speed." },
+  { id: "fish", name: "Fish Ship", rarity: "rare", note: "Swims through vacuum out of sheer confidence." },
+  { id: "boot", name: "Boot", rarity: "rare", note: "Left behind by a giant. Surprisingly aerodynamic." },
+  { id: "crown", name: "Crown Cruiser", rarity: "legendary", note: "Every window has a tiny curtain." },
+  { id: "potato", name: "Comet Potato", rarity: "legendary", note: "It is a potato. It is also, somehow, very fast." },
+  { id: "plane", name: "Paper Plane", rarity: "common", note: "Folded during a boring briefing. It escaped." },
+  { id: "thimble", name: "Thimble", rarity: "common", note: "Sews through asteroid fields. Very brave for its size." },
+  { id: "accordion", name: "Accordion", rarity: "uncommon", note: "Every note is also a course correction." },
+  { id: "porch", name: "Porch Light", rarity: "uncommon", note: "A porch light with ambitions and a little door." },
+  { id: "sub", name: "Vacuum Sub", rarity: "rare", note: "Still checks for water. There is no water." },
+  { id: "hat", name: "Top Hat", rarity: "rare", note: "Tips itself when it passes a planet." },
+  { id: "biscotti", name: "Biscotti", rarity: "rare", note: "A purple brontosaurus with a green belly. The neck is the antenna." },
+  { id: "gru", name: "Gru's Ship", rarity: "rare", note: "A tall silver rocket with a red stripe. The fins mean business." },
+  { id: "whale", name: "Choir Whale", rarity: "legendary", note: "Sings directions. The chorus lasts four hours." },
+  { id: "disco", name: "Disco Ball", rarity: "legendary", note: "The dance floor is the engine. Please hold on." },
+];
+
+const RARITY_WEIGHT = [
+  ["common", 55],
+  ["uncommon", 28],
+  ["rare", 13],
+  ["legendary", 4],
+];
+
+if (!Array.isArray(stats.aliens)) {
+  stats.aliens = [];
+}
+if (!Array.isArray(stats.ships) || stats.ships.length === 0) {
+  stats.ships = ["dart"];
+}
+if (!stats.ships.includes("dart")) {
+  stats.ships.unshift("dart");
+}
+if (!stats.ship || !stats.ships.includes(stats.ship)) {
+  stats.ship = "dart";
+}
+if (typeof stats.rider !== "string" || !stats.aliens.includes(stats.rider)) {
+  stats.rider = "";
+}
+if (!Number.isFinite(stats.dust)) {
+  stats.dust = 0;
+}
 
 let settings = loadJson(SETTINGS_KEY, {
   theme: "ink",
@@ -42,6 +124,8 @@ const PREFERRED_CATEGORIES = new Set([
 let audioContext = null;
 let musicMaster = null;
 let musicHums = [];
+let musicBeds = [];
+let musicNoise = null;
 let musicGeneration = 0;
 
 function loadJson(key, fallback) {
@@ -56,7 +140,10 @@ function saveJson(key, value) {
   localStorage.setItem(key, JSON.stringify(value));
 }
 
+let currentScreen = "home";
+
 function show(name) {
+  currentScreen = name;
   for (const screen of Object.values(screens)) {
     screen.classList.add("hidden");
   }
@@ -72,18 +159,23 @@ function shuffle(items) {
   return copy;
 }
 
+function isBirthYear(question) {
+  return /(?:in which year was|what year was|when was).+ born/i.test(question.question);
+}
+
 function buildDeck() {
   const preferred = [];
   const others = [];
   for (const question of questions) {
     const general = PREFERRED_CATEGORIES.has(question.category) || question.source === "original";
-    if (general) {
+    if (general && !isBirthYear(question)) {
       preferred.push(question);
     } else {
       others.push(question);
     }
   }
   // History, places, animals, and the added questions come up more often.
+  // Birth-year questions stay in the deck, but they are not doubled.
   return shuffle([...preferred, ...preferred, ...others]);
 }
 
@@ -115,6 +207,8 @@ function showQuestion() {
     choices.appendChild(button);
   }
   document.querySelector("#next-question").classList.add("hidden");
+  document.querySelector("#reward").classList.add("hidden");
+  hideBriefing();
 }
 
 function grade(button, answer) {
@@ -125,7 +219,7 @@ function grade(button, answer) {
 
   const correct = answer === current.correct_answer;
   stats.answered += 1;
-  stats.categories[current.category] = (stats.categories[current.category] || 0) + 1;
+  noteCategory(current.category, correct);
 
   if (correct) {
     stats.correct += 1;
@@ -134,6 +228,11 @@ function grade(button, answer) {
     stats.longestStreak = Math.max(stats.longestStreak, stats.currentStreak);
     stats.bestSession = Math.max(stats.bestSession, sessionCorrect);
     noteCheckpoint(stats.currentStreak);
+    const gained = stats.currentStreak;
+    stats.dust += gained;
+    riderCheer = performance.now();
+    const alien = discoverAlien(current.difficulty);
+    showReward(gained, alien);
     button.classList.add("correct");
     changeFlightSpeed(true);
   } else {
@@ -152,7 +251,53 @@ function grade(button, answer) {
     choice.disabled = true;
   }
   saveJson(STATS_KEY, stats);
+  showBriefing(current);
   document.querySelector("#next-question").classList.remove("hidden");
+}
+
+function briefingKey(text) {
+  return text
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+function findBriefing(question) {
+  if (!question || question.difficulty === "easy" || typeof BRIEFINGS === "undefined") {
+    return "";
+  }
+  const answerKey = briefingKey(question.correct_answer);
+  if (BRIEFINGS.has(answerKey)) {
+    return BRIEFINGS.get(answerKey);
+  }
+  const text = ` ${briefingKey(question.question)} `;
+  let bestKey = "";
+  let note = "";
+  for (const [key, value] of BRIEFINGS) {
+    if (key.length < 3 || key.length <= bestKey.length) {
+      continue;
+    }
+    if (text.includes(` ${key} `)) {
+      bestKey = key;
+      note = value;
+    }
+  }
+  return note;
+}
+
+function hideBriefing() {
+  const note = document.querySelector("#briefing");
+  note.textContent = "";
+  note.classList.add("hidden");
+}
+
+function showBriefing(question) {
+  const note = document.querySelector("#briefing");
+  const text = findBriefing(question);
+  note.textContent = text;
+  note.classList.toggle("hidden", text === "");
 }
 
 function accuracy() {
@@ -192,13 +337,57 @@ function checkpointName(level) {
   return CHECKPOINTS[Math.min(level, CHECKPOINTS.length) - 1];
 }
 
+function categoryPlays(record) {
+  if (typeof record === "number") {
+    return record;
+  }
+  if (!record || typeof record !== "object") {
+    return 0;
+  }
+  return record.played || 0;
+}
+
+function noteCategory(name, wasCorrect) {
+  const current = stats.categories[name];
+  const record = current && typeof current === "object"
+    ? current
+    : { played: Number(current) || 0, tracked: 0, correct: 0 };
+  record.played += 1;
+  record.tracked += 1;
+  if (wasCorrect) {
+    record.correct += 1;
+  }
+  stats.categories[name] = record;
+}
+
 function favoriteCategory() {
   const entries = Object.entries(stats.categories);
   if (entries.length === 0) {
     return "—";
   }
-  entries.sort((a, b) => b[1] - a[1]);
+  entries.sort((a, b) => categoryPlays(b[1]) - categoryPlays(a[1]));
   return entries[0][0];
+}
+
+function bestAccuracyCategory() {
+  const ranked = [];
+  for (const [name, record] of Object.entries(stats.categories)) {
+    if (!record || typeof record !== "object" || record.tracked < 3) {
+      continue;
+    }
+    ranked.push({
+      name,
+      rate: record.correct / record.tracked,
+      tracked: record.tracked,
+    });
+  }
+  if (ranked.length === 0) {
+    return "—";
+  }
+  ranked.sort((a, b) => b.rate - a.rate || b.tracked - a.tracked);
+  const best = ranked[0];
+  const percent = Math.round(best.rate * 1000) / 10;
+  return `${best.name} · ${percent}%`;
 }
 
 function renderStats() {
@@ -210,7 +399,11 @@ function renderStats() {
     ["Sessions", stats.sessions],
     ["Best session", stats.bestSession],
     ["Most played", favoriteCategory()],
+    ["Best accuracy", bestAccuracyCategory()],
     ["Furthest checkpoint", checkpointName(stats.furthestCheckpoint)],
+    ["Space dust", stats.dust],
+    ["Aliens met", `${stats.aliens.length} / ${ALIENS.length}`],
+    ["Ships", `${stats.ships.length} / ${SHIPS.length}`],
   ];
   const list = document.querySelector("#stat-list");
   list.replaceChildren();
@@ -223,6 +416,345 @@ function renderStats() {
     item.append(term, detail);
     list.appendChild(item);
   }
+  showDust();
+}
+
+function findById(list, id) {
+  return list.find((item) => item.id === id);
+}
+
+function weightedPick(pool) {
+  const weights = { common: 10, uncommon: 5, rare: 2, legendary: 1 };
+  const total = pool.reduce((sum, item) => sum + weights[item.rarity], 0);
+  let roll = Math.random() * total;
+  for (const item of pool) {
+    roll -= weights[item.rarity];
+    if (roll <= 0) {
+      return item;
+    }
+  }
+  return pool[pool.length - 1];
+}
+
+function discoverAlien(difficulty) {
+  const chance = difficulty === "hard" ? 0.22 : difficulty === "medium" ? 0.08 : 0;
+  if (Math.random() >= chance) {
+    return null;
+  }
+  const missing = ALIENS.filter((alien) => !stats.aliens.includes(alien.id));
+  if (missing.length === 0) {
+    return null;
+  }
+  const alien = weightedPick(missing);
+  stats.aliens.push(alien.id);
+  spawnGuest(alien.id);
+  openReveal("alien", alien.id, alien.name, alien.note);
+  return alien;
+}
+
+function showReward(gained, alien) {
+  const note = document.querySelector("#reward");
+  const dust = `+${gained} space dust`;
+  note.textContent = alien ? `${dust}. ${alien.name} waved from the stars.` : dust;
+  note.classList.remove("hidden");
+  showDust();
+}
+
+function showDust() {
+  const label = `${stats.dust} space dust`;
+  document.querySelector("#dust-home").textContent = label;
+  document.querySelector("#dust-shop").textContent = label;
+  const button = document.querySelector("#buy-box");
+  button.disabled = stats.dust < BOX_COST;
+  const savedDaily = JSON.parse(localStorage.getItem(DAILY_KEY) || "null");
+  const dailyButton = document.querySelector("#open-daily");
+  dailyButton.textContent = savedDaily && savedDaily.date === dailyDate() && savedDaily.done
+    ? "Daily challenge · done"
+    : "Daily challenge";
+}
+
+function rollRarity() {
+  const roll = Math.random() * 100;
+  let cursor = 0;
+  for (const [name, weight] of RARITY_WEIGHT) {
+    cursor += weight;
+    if (roll < cursor) {
+      return name;
+    }
+  }
+  return "common";
+}
+
+function pickMysteryShip() {
+  const rarity = rollRarity();
+  const ofRarity = SHIPS.filter((ship) => ship.rarity === rarity);
+  const fresh = ofRarity.filter((ship) => !stats.ships.includes(ship.id));
+  const repeats = ofRarity.filter((ship) => stats.ships.includes(ship.id));
+  const repeatRoll = Math.random() < 0.32;
+  if (fresh.length > 0 && !(repeatRoll && repeats.length > 0)) {
+    return { ship: fresh[Math.floor(Math.random() * fresh.length)], duplicate: false };
+  }
+  if (repeats.length > 0) {
+    return { ship: repeats[Math.floor(Math.random() * repeats.length)], duplicate: true };
+  }
+  const anyFresh = SHIPS.filter((ship) => !stats.ships.includes(ship.id));
+  if (anyFresh.length > 0) {
+    return { ship: anyFresh[Math.floor(Math.random() * anyFresh.length)], duplicate: false };
+  }
+  const owned = SHIPS.filter((ship) => stats.ships.includes(ship.id));
+  return { ship: owned[Math.floor(Math.random() * owned.length)], duplicate: true };
+}
+
+function buyMysteryBox() {
+  if (stats.dust < BOX_COST || revealState) {
+    return;
+  }
+  stats.dust -= BOX_COST;
+  const { ship, duplicate } = pickMysteryShip();
+  const note = document.querySelector("#shop-note");
+  note.classList.remove("hidden");
+  if (duplicate) {
+    stats.dust += DUPLICATE_REFUND;
+    note.textContent = `The ${ship.name} was already in the hangar. ${DUPLICATE_REFUND} dust drifted back.`;
+    openReveal(
+      "duplicate",
+      ship.id,
+      ship.name,
+      `Already in the hangar. ${DUPLICATE_REFUND} dust drifted back.`,
+    );
+  } else {
+    stats.ships.push(ship.id);
+    const article = "aeiou".includes(ship.rarity[0]) ? "an" : "a";
+    note.textContent = `The box popped open: ${ship.name}, ${article} ${ship.rarity} ship.`;
+    openReveal("ship", ship.id, ship.name, `${article} ${ship.rarity} ship`);
+  }
+  saveJson(STATS_KEY, stats);
+  renderShop();
+}
+
+let revealState = null;
+let revealFrame = 0;
+
+function easeOutBack(amount) {
+  const overshoot = 1.70158;
+  const scaled = overshoot + 1;
+  return 1 + scaled * (amount - 1) ** 3 + overshoot * (amount - 1) ** 2;
+}
+
+function openReveal(kind, id, title, note) {
+  const celebrate = kind !== "duplicate";
+  const sparks = Array.from({ length: celebrate ? 18 : 8 }, (_, index) => ({
+    angle: (index / (celebrate ? 18 : 8)) * Math.PI * 2 + Math.random() * 0.4,
+    speed: celebrate ? 46 + Math.random() * 70 : 18 + Math.random() * 22,
+    size: 1.6 + Math.random() * 2.2,
+    color: celebrate
+      ? ["#f4d35e", "#f7f4ee", "#9fd0ff", "#8fd0a8"][index % 4]
+      : "#8d8478",
+  }));
+  revealState = { kind, id, title, started: performance.now(), sparks };
+  const root = document.querySelector("#reveal");
+  root.classList.remove("hidden", "celebrate", "shrug");
+  root.classList.add(celebrate ? "celebrate" : "shrug");
+  document.querySelector("#reveal-kicker").textContent = kind === "alien"
+    ? "New alien"
+    : kind === "ship"
+      ? "New ship"
+      : "Repeat ship";
+  document.querySelector("#reveal-title").textContent = title;
+  document.querySelector("#reveal-note").textContent = note;
+  cancelAnimationFrame(revealFrame);
+  const loop = (now) => {
+    paintReveal(now);
+    if (revealState) {
+      revealFrame = requestAnimationFrame(loop);
+    }
+  };
+  revealFrame = requestAnimationFrame(loop);
+}
+
+function closeReveal() {
+  revealState = null;
+  cancelAnimationFrame(revealFrame);
+  document.querySelector("#reveal").classList.add("hidden");
+}
+
+function paintCrate(ctx, open, shrug) {
+  ctx.fillStyle = shrug ? "#b7aa9a" : "#c9843a";
+  ctx.fillRect(-28, -16, 56, 38);
+  ctx.strokeStyle = shrug ? "#7d7468" : "#8a5420";
+  ctx.lineWidth = 2;
+  ctx.strokeRect(-28, -16, 56, 38);
+  ctx.beginPath();
+  ctx.moveTo(-28, 3);
+  ctx.lineTo(28, 3);
+  ctx.moveTo(0, -16);
+  ctx.lineTo(0, 22);
+  ctx.stroke();
+  ctx.save();
+  ctx.translate(0, -16);
+  ctx.rotate(-(shrug ? open * 0.28 : open * 1.2));
+  ctx.fillStyle = shrug ? "#cfc6b8" : "#e0a45a";
+  ctx.fillRect(-30, -11, 60, 12);
+  ctx.restore();
+  if (open < 0.35) {
+    ctx.fillStyle = "#1b1916";
+    ctx.font = "700 18px Fredoka, sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("?", 0, 2);
+  }
+}
+
+function paintReveal(now) {
+  if (!revealState) {
+    return;
+  }
+  const canvas = document.querySelector("#reveal-stage");
+  const ctx = canvas.getContext("2d");
+  const width = 280;
+  const height = 180;
+  const ratio = window.devicePixelRatio || 1;
+  if (canvas.width !== Math.floor(width * ratio) || canvas.height !== Math.floor(height * ratio)) {
+    canvas.width = Math.floor(width * ratio);
+    canvas.height = Math.floor(height * ratio);
+  }
+  ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+  ctx.clearRect(0, 0, width, height);
+  const elapsed = (now - revealState.started) / 1000;
+  const shrug = revealState.kind === "duplicate";
+  const opened = revealState.kind === "alien"
+    ? Math.min(1, elapsed / 0.34)
+    : Math.min(1, Math.max(0, (elapsed - 0.42) / 0.38));
+  const accent = getComputedStyle(document.body).getPropertyValue("--accent").trim() || "#e07a3d";
+  const shake = elapsed < 0.5 ? Math.sin(elapsed * 46) * (1 - elapsed / 0.5) * (shrug ? 2 : 5) : 0;
+
+  if (revealState.kind !== "alien") {
+    ctx.save();
+    ctx.translate(width / 2 + shake, height * 0.76);
+    ctx.globalAlpha = 1 - opened * (shrug ? 0.55 : 0.85);
+    paintCrate(ctx, opened, shrug);
+    ctx.restore();
+  }
+
+  if (opened > 0) {
+    const pop = easeOutBack(opened);
+    ctx.save();
+    ctx.translate(width / 2, height * 0.34);
+    if (shrug) {
+      ctx.rotate(0.08);
+      ctx.globalAlpha = 0.8;
+    } else {
+      ctx.rotate(Math.sin(elapsed * 7) * 0.06 * (1 - Math.min(1, elapsed)));
+    }
+    const scale = (revealState.kind === "alien" ? 2.35 : 2.15) * (0.15 + 0.85 * pop);
+    ctx.scale(scale, scale);
+    if (revealState.kind === "alien") {
+      ctx.rotate(Math.sin(elapsed * 8) * 0.18);
+      ctx.translate(0, Math.sin(elapsed * 8) * -1.4);
+      paintAlien(ctx, revealState.id);
+    } else {
+      paintShip(ctx, revealState.id, accent);
+    }
+    ctx.restore();
+
+    const travel = Math.max(0, revealState.kind === "alien" ? elapsed * 0.85 : elapsed - 0.55);
+    for (const spark of revealState.sparks) {
+      const distance = spark.speed * travel;
+      const drop = shrug ? travel * travel * 36 : 0;
+      const x = width / 2 + Math.cos(spark.angle) * distance;
+      const y = height * 0.42 + Math.sin(spark.angle) * distance * (shrug ? 0.35 : 1) + drop;
+      ctx.globalAlpha = Math.max(0, 1 - travel / (shrug ? 0.8 : 1.35));
+      ctx.fillStyle = spark.color;
+      ctx.beginPath();
+      ctx.arc(x, y, spark.size, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  }
+}
+
+function paintPreview(canvas, painter) {
+  const ctx = canvas.getContext("2d");
+  const width = 160;
+  const height = 72;
+  const ratio = window.devicePixelRatio || 1;
+  canvas.width = width * ratio;
+  canvas.height = height * ratio;
+  ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+  ctx.clearRect(0, 0, width, height);
+  ctx.translate(width / 2, height / 2);
+  ctx.scale(1.7, 1.7);
+  painter(ctx);
+}
+
+function renderCards(container, items, ownedIds, selectedId, paint, onPick, lockedLabel, lockedNote) {
+  container.replaceChildren();
+  const accent = getComputedStyle(document.body).getPropertyValue("--accent").trim();
+  for (const item of items) {
+    const owned = ownedIds.includes(item.id);
+    const card = document.createElement(owned && onPick ? "button" : "article");
+    if (owned && onPick) {
+      card.type = "button";
+      card.className = `card${item.id === selectedId ? " selected" : ""}`;
+      card.addEventListener("click", () => onPick(item.id));
+    } else if (!owned) {
+      card.className = "locked";
+    }
+    const canvas = document.createElement("canvas");
+    const title = document.createElement("h3");
+    const rarity = document.createElement("p");
+    const detail = document.createElement("p");
+    title.textContent = owned ? item.name : "Unknown";
+    rarity.textContent = owned ? item.rarity : lockedLabel;
+    detail.textContent = owned ? item.note : lockedNote;
+    card.append(canvas, title, rarity, detail);
+    container.appendChild(card);
+    if (owned) {
+      paintPreview(canvas, (ctx) => paint(ctx, item.id, accent));
+    }
+  }
+}
+
+function renderAlienBook() {
+  const owned = stats.aliens.length;
+  document.querySelector("#alien-count").textContent = owned
+    ? `${owned} of ${ALIENS.length} species. Tap one to ride along.`
+    : `${owned} of ${ALIENS.length} species`;
+  renderCards(
+    document.querySelector("#alien-book"),
+    ALIENS,
+    stats.aliens,
+    stats.rider,
+    (ctx, id) => paintAlien(ctx, id),
+    (id) => {
+      stats.rider = stats.rider === id ? "" : id;
+      saveJson(STATS_KEY, stats);
+      renderAlienBook();
+    },
+    "Not met yet",
+    "Keep exploring.",
+  );
+}
+
+function renderShop() {
+  showDust();
+}
+
+function renderHangar() {
+  renderCards(
+    document.querySelector("#ship-book"),
+    SHIPS,
+    stats.ships,
+    stats.ship,
+    paintShip,
+    (id) => {
+      stats.ship = id;
+      saveJson(STATS_KEY, stats);
+      renderHangar();
+    },
+    "Still boxed",
+    "Open a mystery box.",
+  );
 }
 
 function applyTheme(theme) {
@@ -241,20 +773,41 @@ function stopMusic() {
   for (const oscillator of musicHums) {
     oscillator.stop();
   }
+  for (const bed of musicBeds) {
+    bed.stop();
+  }
   musicHums = [];
+  musicBeds = [];
   if (musicMaster) {
     musicMaster.disconnect();
     musicMaster = null;
   }
 }
 
+function noiseBuffer() {
+  if (musicNoise) {
+    return musicNoise;
+  }
+  const length = audioContext.sampleRate * 2;
+  const buffer = audioContext.createBuffer(1, length, audioContext.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let index = 0; index < length; index += 1) {
+    data[index] = Math.random() * 2 - 1;
+  }
+  musicNoise = buffer;
+  return buffer;
+}
+
 function playTone(note, time, duration, wave, volume) {
   const oscillator = audioContext.createOscillator();
   const gain = audioContext.createGain();
+  const attack = Math.min(0.05, duration * 0.25);
+  const release = Math.min(0.22, duration * 0.4);
   oscillator.type = wave;
   oscillator.frequency.value = midi(note);
   gain.gain.setValueAtTime(0.0001, time);
-  gain.gain.exponentialRampToValueAtTime(volume, time + 0.03);
+  gain.gain.exponentialRampToValueAtTime(volume, time + attack);
+  gain.gain.setValueAtTime(volume, time + Math.max(attack, duration - release));
   gain.gain.exponentialRampToValueAtTime(0.0001, time + duration);
   oscillator.connect(gain);
   gain.connect(musicMaster);
@@ -262,43 +815,73 @@ function playTone(note, time, duration, wave, volume) {
   oscillator.stop(time + duration + 0.05);
 }
 
-function scheduleLoop(events, loopSeconds, generation) {
+function playNoise(time, duration, frequency, volume) {
+  const source = audioContext.createBufferSource();
+  const filter = audioContext.createBiquadFilter();
+  const gain = audioContext.createGain();
+  source.buffer = noiseBuffer();
+  filter.type = "highpass";
+  filter.frequency.value = frequency;
+  gain.gain.setValueAtTime(0.0001, time);
+  gain.gain.exponentialRampToValueAtTime(volume, time + 0.01);
+  gain.gain.exponentialRampToValueAtTime(0.0001, time + duration);
+  source.connect(filter);
+  filter.connect(gain);
+  gain.connect(musicMaster);
+  source.start(time);
+  source.stop(time + duration + 0.02);
+}
+
+function scheduleLoop(source, loopSeconds, generation) {
   if (generation !== musicGeneration) {
     return;
   }
+  const events = typeof source === "function" ? source() : source;
   const start = audioContext.currentTime + 0.06;
   for (const event of events) {
     if (generation !== musicGeneration) {
       return;
     }
-    playTone(event.note, start + event.time, event.duration, event.wave, event.volume);
+    if (event.noise) {
+      playNoise(start + event.time, event.duration, event.frequency, event.volume);
+    } else {
+      playTone(event.note, start + event.time, event.duration, event.wave, event.volume);
+    }
   }
-  window.setTimeout(() => scheduleLoop(events, loopSeconds, generation), loopSeconds * 1000);
+  window.setTimeout(() => scheduleLoop(source, loopSeconds, generation), loopSeconds * 1000);
 }
 
 function classicalTune() {
-  // Beethoven's Ode to Joy, which is in the public domain, with a harmony and bass.
-  const melody = [
-    64, 64, 65, 67, 67, 65, 64, 62, 60, 60, 62, 64, 64, 62, 62, 62,
-    64, 64, 65, 67, 67, 65, 64, 62, 60, 60, 62, 64, 62, 60, 60, 60,
-  ];
-  const harmony = [
-    60, 60, 60, 64, 64, 60, 60, 59, 55, 55, 57, 60, 60, 59, 59, 59,
-    60, 60, 60, 64, 64, 60, 60, 59, 55, 55, 57, 60, 59, 55, 55, 55,
+  // Erik Satie, Gymnopédie No. 1 (1888). The piece is in the public domain.
+  const beat = 0.62;
+  const bars = [
+    { bass: 43, chord: [59, 62, 66], melody: [78, 76, 74] },
+    { bass: 38, chord: [57, 62, 66], melody: [73, 71, 69] },
+    { bass: 43, chord: [59, 62, 66], melody: [74, 73, 71] },
+    { bass: 38, chord: [57, 61, 66], melody: [69, 67, 66] },
+    { bass: 38, chord: [61, 66, 69], melody: [78, 76, 74] },
+    { bass: 43, chord: [59, 62, 66], melody: [73, 76, 78] },
+    { bass: 38, chord: [57, 62, 66], melody: [81, 78, 76] },
+    { bass: 43, chord: [59, 62, 66], melody: [74, 73, 71] },
   ];
   const events = [];
-  const step = 0.48;
-  melody.forEach((note, index) => {
-    const phraseEnd = index === 14 || index === 15 || index === 30 || index === 31;
-    const duration = phraseEnd ? 0.78 : 0.4;
-    events.push({ note, time: index * step, duration, wave: "triangle", volume: 0.16 });
-    events.push({ note: harmony[index], time: index * step, duration, wave: "sine", volume: 0.08 });
+  bars.forEach((bar, index) => {
+    const start = index * beat * 3;
+    events.push({ note: bar.bass, time: start, duration: beat * 2.7, wave: "triangle", volume: 0.09 });
+    for (const note of bar.chord) {
+      events.push({ note, time: start + beat, duration: beat * 1.85, wave: "sine", volume: 0.045 });
+    }
+    bar.melody.forEach((note, step) => {
+      events.push({
+        note,
+        time: start + step * beat,
+        duration: beat * 0.92,
+        wave: "triangle",
+        volume: 0.1,
+      });
+    });
   });
-  const bass = [48, 43, 41, 43, 48, 43, 45, 41];
-  bass.forEach((note, index) => {
-    events.push({ note, time: index * step * 4, duration: 1.7, wave: "triangle", volume: 0.1 });
-  });
-  return { events, loopSeconds: melody.length * step + 0.35 };
+  return { events, loopSeconds: bars.length * beat * 3 + 0.2 };
 }
 
 function spaceTune() {
@@ -346,6 +929,124 @@ function jazzTune() {
   return { events, loopSeconds: 7.2 };
 }
 
+function lofiTune() {
+  const events = [];
+  const chords = [
+    [50, 57, 60, 65],
+    [43, 50, 55, 59],
+    [48, 55, 60, 64],
+    [45, 52, 57, 60],
+  ];
+  chords.forEach((chord, index) => {
+    const start = index * 2;
+    for (const note of chord) {
+      events.push({ note, time: start, duration: 1.7, wave: "sine", volume: 0.05 });
+      events.push({ note: note + 12, time: start + 0.04, duration: 1.4, wave: "triangle", volume: 0.03 });
+    }
+    events.push({ note: 36, time: start, duration: 0.16, wave: "sine", volume: 0.16 });
+    events.push({ note: 36, time: start + 1.35, duration: 0.1, wave: "sine", volume: 0.08 });
+    events.push({ noise: true, time: start + 1, duration: 0.12, frequency: 1800, volume: 0.05 });
+  });
+  for (let step = 0; step < 16; step += 1) {
+    events.push({
+      noise: true,
+      time: step * 0.5 + 0.26,
+      duration: 0.04,
+      frequency: 5000,
+      volume: step % 2 === 0 ? 0.02 : 0.012,
+    });
+  }
+  const melody = [[0.2, 72], [1.1, 74], [2.15, 76], [3.4, 74], [4.2, 72], [5.5, 69], [6.3, 67], [7.2, 69]];
+  for (const [time, note] of melody) {
+    events.push({ note, time, duration: 0.55, wave: "triangle", volume: 0.07 });
+  }
+  return { events, loopSeconds: 8 };
+}
+
+function rainDrips() {
+  const events = [];
+  const drops = 7 + Math.floor(Math.random() * 5);
+  for (let index = 0; index < drops; index += 1) {
+    events.push({
+      note: 84 + Math.floor(Math.random() * 14),
+      time: Math.random() * 3.7,
+      duration: 0.04 + Math.random() * 0.07,
+      wave: "sine",
+      volume: 0.025 + Math.random() * 0.04,
+    });
+  }
+  return events;
+}
+
+function startRainBed() {
+  const source = audioContext.createBufferSource();
+  const low = audioContext.createBiquadFilter();
+  const gain = audioContext.createGain();
+  source.buffer = noiseBuffer();
+  source.loop = true;
+  low.type = "lowpass";
+  low.frequency.value = 780;
+  gain.gain.value = 0.2;
+  source.connect(low);
+  low.connect(gain);
+  gain.connect(musicMaster);
+  source.start();
+  musicBeds.push(source);
+
+  const hiss = audioContext.createBufferSource();
+  const high = audioContext.createBiquadFilter();
+  const hissGain = audioContext.createGain();
+  hiss.buffer = noiseBuffer();
+  hiss.loop = true;
+  high.type = "highpass";
+  high.frequency.value = 2400;
+  hissGain.gain.value = 0.035;
+  hiss.connect(high);
+  high.connect(hissGain);
+  hissGain.connect(musicMaster);
+  hiss.start();
+  musicBeds.push(hiss);
+}
+
+function bossaTune() {
+  const events = [];
+  const pattern = [
+    { bass: 38, chord: [50, 57, 62], time: 0 },
+    { bass: 45, chord: [52, 57, 64], time: 2 },
+    { bass: 43, chord: [50, 55, 62], time: 4 },
+    { bass: 41, chord: [48, 53, 60], time: 6 },
+  ];
+  for (const bar of pattern) {
+    events.push({ note: bar.bass, time: bar.time, duration: 0.28, wave: "sine", volume: 0.12 });
+    events.push({ note: bar.bass + 12, time: bar.time + 0.75, duration: 0.18, wave: "sine", volume: 0.07 });
+    events.push({ note: bar.bass, time: bar.time + 1.25, duration: 0.22, wave: "sine", volume: 0.09 });
+    for (const note of bar.chord) {
+      events.push({ note, time: bar.time + 0.35, duration: 0.28, wave: "triangle", volume: 0.045 });
+      events.push({ note, time: bar.time + 1.05, duration: 0.22, wave: "triangle", volume: 0.035 });
+    }
+  }
+  const melody = [[0.4, 69], [1.3, 74], [2.4, 72], [3.5, 69], [4.4, 67], [5.6, 69], [6.5, 65], [7.3, 62]];
+  for (const [time, note] of melody) {
+    events.push({ note, time, duration: 0.42, wave: "triangle", volume: 0.08 });
+  }
+  return { events, loopSeconds: 8 };
+}
+
+function nightTune() {
+  const events = [];
+  const chords = [
+    [48, 55, 60, 63],
+    [46, 53, 58, 62],
+  ];
+  chords.forEach((chord, index) => {
+    for (const note of chord) {
+      events.push({ note, time: index * 5, duration: 5.4, wave: "sine", volume: 0.05 });
+      events.push({ note: note + 12, time: index * 5 + 0.4, duration: 4.6, wave: "sine", volume: 0.02 });
+    }
+  });
+  return { events, loopSeconds: 10 };
+}
+
 function startMusic(kind) {
   stopMusic();
   for (const button of document.querySelectorAll("[data-music-choice]")) {
@@ -362,9 +1063,22 @@ function startMusic(kind) {
   musicMaster = audioContext.createGain();
   musicMaster.connect(audioContext.destination);
 
-  const tunes = { jazz: jazzTune, classical: classicalTune, space: spaceTune };
+  const tunes = {
+    jazz: jazzTune,
+    classical: classicalTune,
+    space: spaceTune,
+    lofi: lofiTune,
+    bossa: bossaTune,
+    night: nightTune,
+  };
+  if (kind === "rain") {
+    musicMaster.gain.value = 0.9;
+    startRainBed();
+    scheduleLoop(rainDrips, 4, musicGeneration);
+    return;
+  }
   if (tunes[kind]) {
-    musicMaster.gain.value = kind === "space" ? 0.8 : 0.9;
+    musicMaster.gain.value = kind === "space" ? 0.8 : 0.85;
     const tune = tunes[kind]();
     scheduleLoop(tune.events, tune.loopSeconds, musicGeneration);
     return;
@@ -382,6 +1096,261 @@ function startMusic(kind) {
   }
 }
 
+const DAILY_BANKS = [
+  {
+    id: "events",
+    prompt: "Put these events in order, earliest first. 5 space dust for each correct spot.",
+    items: [
+      { id: "olympics", label: "First ancient Olympic Games", value: -776 },
+      { id: "magna", label: "Magna Carta is sealed", value: 1215 },
+      { id: "press", label: "Gutenberg's printing press", value: 1440 },
+      { id: "columbus", label: "Columbus reaches the Americas", value: 1492 },
+      { id: "independence", label: "United States Declaration of Independence", value: 1776 },
+      { id: "revolution", label: "French Revolution begins", value: 1789 },
+      { id: "civil", label: "American Civil War begins", value: 1861 },
+      { id: "flight", label: "Wright brothers' first flight", value: 1903 },
+      { id: "titanic", label: "Titanic sinks", value: 1912 },
+      { id: "vote", label: "U.S. women win the vote", value: 1920 },
+      { id: "ww2", label: "World War II begins in Europe", value: 1939 },
+      { id: "sputnik", label: "Sputnik orbits Earth", value: 1957 },
+      { id: "moon", label: "Apollo 11 lands on the Moon", value: 1969 },
+      { id: "wall", label: "Berlin Wall falls", value: 1989 },
+      { id: "web", label: "The World Wide Web is opened to the public", value: 1991 },
+      { id: "phones", label: "Apple announces the iPhone", value: 2007 },
+    ],
+  },
+  {
+    id: "ages",
+    prompt: "Put these people in order, youngest first. 5 space dust for each correct spot.",
+    items: [
+      { id: "confucius", label: "Confucius", value: -551 },
+      { id: "cleopatra", label: "Cleopatra", value: -69 },
+      { id: "joan", label: "Joan of Arc", value: 1412 },
+      { id: "leonardo", label: "Leonardo da Vinci", value: 1452 },
+      { id: "shakespeare", label: "William Shakespeare", value: 1564 },
+      { id: "newton", label: "Isaac Newton", value: 1643 },
+      { id: "mozart", label: "Wolfgang Amadeus Mozart", value: 1756 },
+      { id: "austen", label: "Jane Austen", value: 1775 },
+      { id: "lincoln", label: "Abraham Lincoln", value: 1809 },
+      { id: "lovelace", label: "Ada Lovelace", value: 1815 },
+      { id: "curie", label: "Marie Curie", value: 1867 },
+      { id: "gandhi", label: "Mahatma Gandhi", value: 1869 },
+      { id: "einstein", label: "Albert Einstein", value: 1879 },
+      { id: "picasso", label: "Pablo Picasso", value: 1881 },
+      { id: "earhart", label: "Amelia Earhart", value: 1897 },
+      { id: "kahlo", label: "Frida Kahlo", value: 1907 },
+      { id: "parks", label: "Rosa Parks", value: 1913 },
+      { id: "elizabeth", label: "Queen Elizabeth II", value: 1926 },
+      { id: "king", label: "Martin Luther King Jr.", value: 1929 },
+      { id: "armstrong", label: "Neil Armstrong", value: 1930 },
+      { id: "gagarin", label: "Yuri Gagarin", value: 1934 },
+      { id: "ali", label: "Muhammad Ali", value: 1942 },
+      { id: "mercury", label: "Freddie Mercury", value: 1946 },
+      { id: "oprah", label: "Oprah Winfrey", value: 1954 },
+      { id: "jackson", label: "Michael Jackson", value: 1958 },
+      { id: "obama", label: "Barack Obama", value: 1961 },
+      { id: "serena", label: "Serena Williams", value: 1981 },
+      { id: "bolt", label: "Usain Bolt", value: 1986 },
+      { id: "swift", label: "Taylor Swift", value: 1989 },
+      { id: "malala", label: "Malala Yousafzai", value: 1997 },
+      { id: "greta", label: "Greta Thunberg", value: 2003 },
+    ],
+  },
+  {
+    id: "prices",
+    prompt: "Put these in order, cheapest first. 5 space dust for each correct spot.",
+    items: [
+      { id: "comic", label: "Action Comics #1, cover price, 1938", value: 0.1 },
+      { id: "burger", label: "A McDonald's hamburger, 1948", value: 0.15 },
+      { id: "disney", label: "Disneyland adult admission, 1955", value: 1 },
+      { id: "woodstock", label: "A Woodstock advance ticket, 1969", value: 18 },
+      { id: "iphone", label: "The first iPhone, 4GB, 2007", value: 499 },
+      { id: "modelt", label: "A Ford Model T, 1908", value: 850 },
+      { id: "apple2", label: "An Apple II computer, 1977", value: 1298 },
+      { id: "mac", label: "The original Macintosh, 1984", value: 2495 },
+      { id: "dynatac", label: "A Motorola DynaTAC phone, 1983", value: 3995 },
+      { id: "alaska", label: "The Alaska Purchase, 1867", value: 7200000 },
+      { id: "louisiana", label: "The Louisiana Purchase, 1803", value: 15000000 },
+    ],
+  },
+];
+
+let dailyPlay = null;
+
+function hashString(text) {
+  let hash = 2166136261;
+  for (const char of text) {
+    hash ^= char.charCodeAt(0);
+    hash = Math.imul(hash, 16777619);
+  }
+  return hash >>> 0;
+}
+
+function mulberry32(seed) {
+  let state = seed >>> 0;
+  return () => {
+    state = (state + 0x6D2B79F5) >>> 0;
+    let value = state;
+    value = Math.imul(value ^ (value >>> 15), value | 1);
+    value ^= value + Math.imul(value ^ (value >>> 7), value | 61);
+    return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function shuffleWith(items, random) {
+  const copy = items.slice();
+  for (let index = copy.length - 1; index > 0; index -= 1) {
+    const swap = Math.floor(random() * (index + 1));
+    [copy[index], copy[swap]] = [copy[swap], copy[index]];
+  }
+  return copy;
+}
+
+function dailyDate() {
+  const now = new Date();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${now.getFullYear()}-${month}-${day}`;
+}
+
+function dailyBank(id) {
+  return DAILY_BANKS.find((bank) => bank.id === id);
+}
+
+function dailyAnswer(bank, items) {
+  const copy = items.slice();
+  copy.sort((left, right) => (bank.id === "ages" ? right.value - left.value : left.value - right.value));
+  return copy;
+}
+
+function dailyFact(bank, item) {
+  if (bank.id === "prices") {
+    if (item.value < 1) {
+      return `${Math.round(item.value * 100)}¢`;
+    }
+    return `$${item.value.toLocaleString("en-US")}`;
+  }
+  if (item.value < 0) {
+    return bank.id === "ages" ? `Born ${Math.abs(item.value)} BCE` : `${Math.abs(item.value)} BCE`;
+  }
+  return bank.id === "ages" ? `Born ${item.value}` : String(item.value);
+}
+
+function buildDaily(date) {
+  const random = mulberry32(hashString(`trivianaut-daily-${date}`));
+  const bank = DAILY_BANKS[Math.floor(random() * DAILY_BANKS.length)];
+  const chosen = shuffleWith(bank.items, random).slice(0, 5);
+  const answer = dailyAnswer(bank, chosen);
+  let order = shuffleWith(chosen, random);
+  if (order.every((item, index) => item.id === answer[index].id)) {
+    [order[0], order[1]] = [order[1], order[0]];
+  }
+  return { date, bank, answer, order, done: false, earned: 0 };
+}
+
+function renderDaily() {
+  const bank = dailyPlay.bank;
+  const when = new Date(`${dailyPlay.date}T12:00:00`);
+  document.querySelector("#daily-date").textContent = when.toLocaleDateString(undefined, {
+    month: "long",
+    day: "numeric",
+  });
+  document.querySelector("#daily-prompt").textContent = bank.prompt;
+  const list = document.querySelector("#daily-rank");
+  list.replaceChildren();
+  dailyPlay.order.forEach((item, index) => {
+    const row = document.createElement("li");
+    const spot = document.createElement("span");
+    const label = document.createElement("span");
+    const name = document.createElement("span");
+    spot.className = "spot";
+    spot.textContent = String(index + 1);
+    name.textContent = item.label;
+    label.append(name);
+    if (dailyPlay.done) {
+      const fact = document.createElement("span");
+      fact.className = "fact";
+      fact.textContent = dailyFact(bank, item);
+      label.append(fact);
+      row.classList.add(item.id === dailyPlay.answer[index].id ? "correct" : "wrong");
+    }
+    row.append(spot, label);
+    if (!dailyPlay.done) {
+      const moves = document.createElement("span");
+      moves.className = "moves";
+      for (const direction of [-1, 1]) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.textContent = direction < 0 ? "↑" : "↓";
+        button.setAttribute("aria-label", direction < 0 ? `Move ${item.label} up` : `Move ${item.label} down`);
+        button.disabled = direction < 0 ? index === 0 : index === dailyPlay.order.length - 1;
+        button.addEventListener("click", () => moveDaily(index, direction));
+        moves.append(button);
+      }
+      row.append(moves);
+    }
+    list.appendChild(row);
+  });
+  const note = document.querySelector("#daily-note");
+  const submit = document.querySelector("#daily-submit");
+  note.classList.toggle("hidden", !dailyPlay.done);
+  submit.hidden = dailyPlay.done;
+  if (dailyPlay.done) {
+    const correct = dailyPlay.order.filter((item, index) => item.id === dailyPlay.answer[index].id).length;
+    const spots = correct === 1 ? "spot" : "spots";
+    if (correct === 0) {
+      note.textContent = "None in the right spot. +0 space dust.";
+    } else if (correct === dailyPlay.order.length) {
+      note.textContent = `Perfect order. +${dailyPlay.earned} space dust.`;
+    } else {
+      note.textContent = `${correct} in the right ${spots}. +${dailyPlay.earned} space dust.`;
+    }
+  }
+}
+
+function moveDaily(index, direction) {
+  const next = index + direction;
+  if (dailyPlay.done || next < 0 || next >= dailyPlay.order.length) {
+    return;
+  }
+  const order = dailyPlay.order;
+  [order[index], order[next]] = [order[next], order[index]];
+  renderDaily();
+}
+
+function openDaily() {
+  const date = dailyDate();
+  const saved = JSON.parse(localStorage.getItem(DAILY_KEY) || "null");
+  dailyPlay = buildDaily(date);
+  if (saved && saved.date === date && saved.done) {
+    const byId = new Map(dailyPlay.answer.map((item) => [item.id, item]));
+    dailyPlay.order = saved.order.map((id) => byId.get(id));
+    dailyPlay.done = true;
+    dailyPlay.earned = saved.earned;
+  }
+  renderDaily();
+  show("daily");
+}
+
+function submitDaily() {
+  if (!dailyPlay || dailyPlay.done) {
+    return;
+  }
+  const correct = dailyPlay.order.filter((item, index) => item.id === dailyPlay.answer[index].id).length;
+  dailyPlay.done = true;
+  dailyPlay.earned = correct * DAILY_DUST;
+  stats.dust += dailyPlay.earned;
+  saveJson(STATS_KEY, stats);
+  localStorage.setItem(DAILY_KEY, JSON.stringify({
+    date: dailyPlay.date,
+    done: true,
+    earned: dailyPlay.earned,
+    order: dailyPlay.order.map((item) => item.id),
+  }));
+  renderDaily();
+  showDust();
+}
+
 function openTrivia() {
   if (questions.length === 0) {
     return;
@@ -396,6 +1365,7 @@ function openTrivia() {
 function goHome() {
   stats.bestSession = Math.max(stats.bestSession, sessionCorrect);
   saveJson(STATS_KEY, stats);
+  showDust();
   show("home");
 }
 
@@ -404,9 +1374,33 @@ document.querySelector("#open-stats").addEventListener("click", () => {
   show("stats");
 });
 document.querySelector("#open-trivia").addEventListener("click", openTrivia);
+document.querySelector("#open-daily").addEventListener("click", openDaily);
+document.querySelector("#daily-home").addEventListener("click", () => {
+  showDust();
+  show("home");
+});
+document.querySelector("#daily-submit").addEventListener("click", submitDaily);
+document.querySelector("#open-shop").addEventListener("click", () => {
+  document.querySelector("#shop-note").classList.add("hidden");
+  renderShop();
+  show("shop");
+});
+document.querySelector("#open-hangar").addEventListener("click", () => {
+  renderHangar();
+  show("hangar");
+});
+document.querySelector("#open-species").addEventListener("click", () => {
+  renderAlienBook();
+  show("species");
+});
 document.querySelector("#open-settings").addEventListener("click", () => show("settings"));
+document.querySelector("#buy-box").addEventListener("click", buyMysteryBox);
+document.querySelector("#reveal-close").addEventListener("click", closeReveal);
 document.querySelector("#trivia-home").addEventListener("click", goHome);
-document.querySelector("#stats-home").addEventListener("click", () => show("home"));
+document.querySelector("#stats-home").addEventListener("click", goHome);
+document.querySelector("#shop-home").addEventListener("click", goHome);
+document.querySelector("#hangar-home").addEventListener("click", goHome);
+document.querySelector("#species-home").addEventListener("click", goHome);
 document.querySelector("#settings-home").addEventListener("click", () => show("home"));
 document.querySelector("#next-question").addEventListener("click", showQuestion);
 
@@ -427,6 +1421,7 @@ for (const button of document.querySelectorAll("[data-music-choice]")) {
 }
 
 applyTheme(settings.theme);
+showDust();
 startMusic("off");
 for (const button of document.querySelectorAll("[data-music-choice]")) {
   button.classList.toggle("selected", button.dataset.musicChoice === settings.music);
@@ -461,10 +1456,12 @@ function makeComet(anywhere) {
 
 const comets = Array.from({ length: 18 }, () => makeComet(true));
 const ufos = [];
+const guests = [];
 let nextUfoAt = performance.now() + 6000;
 let activeCheckpoint = null;
 let flightClock = 0;
 let flightLast = performance.now();
+let riderCheer = 0;
 
 function launchUfoVisit(width, height) {
   const fromLeft = Math.random() < 0.5;
@@ -692,17 +1689,670 @@ function drawCheckpointGraphic(name, x, y) {
   flightCtx.restore();
 }
 
+function paintShip(ctx, id, color) {
+  ctx.save();
+  ctx.fillStyle = color;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2;
+  if (id === "saucer") {
+    ctx.beginPath();
+    ctx.ellipse(0, 4, 18, 7, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 0.55;
+    ctx.beginPath();
+    ctx.arc(0, 0, 8, Math.PI, 0);
+    ctx.fill();
+  } else if (id === "pencil") {
+    ctx.fillRect(-16, -4, 26, 8);
+    ctx.beginPath();
+    ctx.moveTo(10, -4);
+    ctx.lineTo(20, 0);
+    ctx.lineTo(10, 4);
+    ctx.fill();
+    ctx.fillStyle = "#f4efe4";
+    ctx.fillRect(-18, -4, 4, 8);
+  } else if (id === "teapot") {
+    ctx.beginPath();
+    ctx.arc(-2, 2, 9, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(6, 0);
+    ctx.quadraticCurveTo(16, -2, 14, 6);
+    ctx.lineTo(8, 4);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(-12, 2, 5, Math.PI * 0.6, Math.PI * 1.5);
+    ctx.stroke();
+    ctx.fillRect(-6, -10, 8, 3);
+  } else if (id === "fish") {
+    ctx.beginPath();
+    ctx.ellipse(2, 0, 14, 7, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(-12, 0);
+    ctx.lineTo(-20, -7);
+    ctx.lineTo(-20, 7);
+    ctx.fill();
+    ctx.fillStyle = "#1b1916";
+    ctx.beginPath();
+    ctx.arc(8, -1, 1.4, 0, Math.PI * 2);
+    ctx.fill();
+  } else if (id === "boot") {
+    ctx.beginPath();
+    ctx.moveTo(-8, -12);
+    ctx.lineTo(2, -12);
+    ctx.lineTo(2, 2);
+    ctx.lineTo(14, 2);
+    ctx.lineTo(14, 8);
+    ctx.lineTo(-8, 8);
+    ctx.closePath();
+    ctx.fill();
+  } else if (id === "crown") {
+    ctx.beginPath();
+    ctx.moveTo(16, 2);
+    ctx.lineTo(-8, -5);
+    ctx.lineTo(-4, 0);
+    ctx.lineTo(-14, 5);
+    ctx.closePath();
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(-6, -8);
+    ctx.lineTo(-2, -14);
+    ctx.lineTo(2, -8);
+    ctx.lineTo(6, -14);
+    ctx.lineTo(10, -8);
+    ctx.lineTo(-6, -8);
+    ctx.fill();
+  } else if (id === "potato") {
+    ctx.beginPath();
+    ctx.ellipse(0, 1, 15, 9, 0.2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#9fd0ff";
+    ctx.beginPath();
+    ctx.arc(4, 0, 3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "#7dce6a";
+    ctx.beginPath();
+    ctx.moveTo(-4, -8);
+    ctx.lineTo(-6, -14);
+    ctx.stroke();
+  } else if (id === "plane") {
+    ctx.beginPath();
+    ctx.moveTo(16, 0);
+    ctx.lineTo(-14, -8);
+    ctx.lineTo(-6, 0);
+    ctx.lineTo(-14, 8);
+    ctx.closePath();
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(-2, 0);
+    ctx.lineTo(4, 9);
+    ctx.lineTo(2, 0);
+    ctx.fill();
+  } else if (id === "thimble") {
+    ctx.beginPath();
+    ctx.moveTo(-8, 8);
+    ctx.lineTo(8, 8);
+    ctx.lineTo(6, -4);
+    ctx.quadraticCurveTo(0, -14, -6, -4);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = "#1b1916";
+    for (const y of [-2, 2, 6]) {
+      ctx.fillRect(-5, y, 10, 1);
+    }
+  } else if (id === "accordion") {
+    ctx.fillRect(-16, -6, 32, 12);
+    ctx.fillStyle = "#1b1916";
+    for (const x of [-10, -4, 2, 8]) {
+      ctx.fillRect(x, -6, 2, 12);
+    }
+  } else if (id === "porch") {
+    ctx.fillRect(-7, -2, 14, 12);
+    ctx.beginPath();
+    ctx.moveTo(-9, -2);
+    ctx.lineTo(0, -12);
+    ctx.lineTo(9, -2);
+    ctx.fill();
+    ctx.fillStyle = "#fff6d0";
+    ctx.fillRect(-3, 2, 6, 6);
+  } else if (id === "sub") {
+    ctx.beginPath();
+    ctx.ellipse(0, 2, 16, 7, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillRect(4, -10, 3, 8);
+    ctx.fillRect(-2, -12, 12, 3);
+  } else if (id === "hat") {
+    ctx.fillRect(-8, -8, 16, 12);
+    ctx.fillRect(-14, 4, 28, 4);
+    ctx.strokeStyle = "#f4efe4";
+    ctx.beginPath();
+    ctx.moveTo(0, -8);
+    ctx.lineTo(0, -14);
+    ctx.moveTo(-4, -14);
+    ctx.lineTo(4, -14);
+    ctx.stroke();
+  } else if (id === "whale") {
+    ctx.beginPath();
+    ctx.ellipse(0, 2, 16, 8, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(-14, 0);
+    ctx.lineTo(-22, -6);
+    ctx.lineTo(-22, 8);
+    ctx.fill();
+    ctx.fillStyle = "#f4efe4";
+    ctx.beginPath();
+    ctx.arc(8, 0, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+  } else if (id === "biscotti") {
+    const purple = "#7a3eaf";
+    ctx.fillStyle = purple;
+    ctx.beginPath();
+    ctx.moveTo(-4, 1);
+    ctx.quadraticCurveTo(-16, 0, -22, -5);
+    ctx.quadraticCurveTo(-14, 6, -4, 7);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(-1, 3, 11, 6.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(6, 1);
+    ctx.quadraticCurveTo(8, -6, 14, -12);
+    ctx.quadraticCurveTo(19, -17, 23, -13);
+    ctx.quadraticCurveTo(25, -11, 21, -10);
+    ctx.quadraticCurveTo(16, -8, 12, 3);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillRect(-9, 7, 3.2, 7);
+    ctx.fillRect(-4, 8, 3.2, 6);
+    ctx.fillRect(2, 7, 3.2, 6);
+    ctx.fillRect(6, 6, 3, 5);
+    ctx.fillStyle = "#6fbf62";
+    ctx.beginPath();
+    ctx.ellipse(-1, 3.6, 8.4, 5.6, 0, 0.02 * Math.PI, 0.98 * Math.PI);
+    ctx.fill();
+    ctx.fillStyle = "#1b1916";
+    ctx.beginPath();
+    ctx.arc(21, -13.4, 0.8, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "#2a1238";
+    ctx.lineWidth = 0.9;
+    ctx.beginPath();
+    ctx.arc(20.4, -12.2, 1.6, 0.15 * Math.PI, 0.85 * Math.PI);
+    ctx.stroke();
+  } else if (id === "gru") {
+    ctx.fillStyle = "#9aa6b2";
+    ctx.beginPath();
+    ctx.moveTo(22, 0);
+    ctx.lineTo(8, -6.5);
+    ctx.lineTo(-12, -6.5);
+    ctx.lineTo(-12, 6.5);
+    ctx.lineTo(8, 6.5);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = "#d7dee6";
+    ctx.fillRect(-8, -5.2, 14, 10.4);
+    ctx.fillStyle = "#d24b3a";
+    ctx.fillRect(7.2, -6.6, 2.4, 13.2);
+    ctx.fillStyle = "#2c3138";
+    ctx.beginPath();
+    ctx.moveTo(-10, -6.5);
+    ctx.lineTo(-20, -13);
+    ctx.lineTo(-12, -3.2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(-10, 6.5);
+    ctx.lineTo(-20, 13);
+    ctx.lineTo(-12, 3.2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = "#1b1916";
+    ctx.beginPath();
+    ctx.arc(1.5, 0, 2.6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#9fd0ff";
+    ctx.beginPath();
+    ctx.arc(1.9, -0.5, 1.25, 0, Math.PI * 2);
+    ctx.fill();
+  } else if (id === "disco") {
+    ctx.beginPath();
+    ctx.arc(0, 0, 12, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#fff6d0";
+    for (const [x, y] of [[-4, -4], [2, -2], [-2, 3], [4, 4]]) {
+      ctx.fillRect(x, y, 3, 3);
+    }
+  } else {
+    ctx.beginPath();
+    ctx.moveTo(16, 0);
+    ctx.lineTo(-12, -6);
+    ctx.lineTo(-7, 0);
+    ctx.lineTo(-12, 6);
+    ctx.closePath();
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+function paintAlien(ctx, id) {
+  ctx.save();
+  ctx.lineWidth = 2;
+  if (id === "noodle") {
+    ctx.strokeStyle = "#8fd0a8";
+    ctx.beginPath();
+    ctx.moveTo(0, 10);
+    ctx.quadraticCurveTo(-8, 0, 0, -12);
+    ctx.stroke();
+    ctx.fillStyle = "#8fd0a8";
+    ctx.beginPath();
+    ctx.arc(0, -14, 4, 0, Math.PI * 2);
+    ctx.fill();
+  } else if (id === "whiskers") {
+    ctx.fillStyle = "#e7d7b8";
+    ctx.beginPath();
+    ctx.arc(0, 2, 8, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(-6, -2);
+    ctx.lineTo(-10, -10);
+    ctx.lineTo(-2, -4);
+    ctx.moveTo(6, -2);
+    ctx.lineTo(10, -10);
+    ctx.lineTo(2, -4);
+    ctx.fill();
+    ctx.strokeStyle = "#f4efe4";
+    ctx.beginPath();
+    ctx.arc(0, -2, 9, Math.PI, 0);
+    ctx.stroke();
+  } else if (id === "square") {
+    ctx.fillStyle = "#e0b15a";
+    ctx.fillRect(-8, -8, 16, 16);
+    ctx.strokeStyle = "#1b1916";
+    ctx.beginPath();
+    ctx.moveTo(-4, 2);
+    ctx.quadraticCurveTo(0, 6, 4, 2);
+    ctx.stroke();
+    ctx.fillRect(-2, 8, 2, 6);
+    ctx.fillRect(2, 8, 2, 6);
+  } else if (id === "honk") {
+    ctx.fillStyle = "#f4efe4";
+    ctx.beginPath();
+    ctx.ellipse(0, 2, 8, 6, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#e07a3d";
+    ctx.beginPath();
+    ctx.moveTo(6, 2);
+    ctx.lineTo(16, 0);
+    ctx.lineTo(6, 5);
+    ctx.fill();
+    ctx.strokeStyle = "#f6d36b";
+    ctx.beginPath();
+    ctx.moveTo(0, -4);
+    ctx.lineTo(2, -14);
+    ctx.stroke();
+  } else if (id === "dave") {
+    ctx.fillStyle = "#7dce6a";
+    ctx.fillRect(-3, 4, 6, 8);
+    ctx.fillStyle = "#d7a15a";
+    ctx.beginPath();
+    ctx.arc(0, -4, 6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "#f0ddb0";
+    ctx.beginPath();
+    ctx.ellipse(0, -4, 11, 3, -0.3, 0, Math.PI * 2);
+    ctx.stroke();
+  } else if (id === "glitter") {
+    ctx.fillStyle = "#c47ad4";
+    ctx.beginPath();
+    ctx.arc(0, 2, 7, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(-7, 0);
+    ctx.lineTo(-13, -6);
+    ctx.lineTo(-4, -2);
+    ctx.moveTo(7, 0);
+    ctx.lineTo(13, -6);
+    ctx.lineTo(4, -2);
+    ctx.fill();
+    ctx.fillStyle = "#fff6d0";
+    for (const [x, y] of [[-10, 8], [8, -10], [12, 6]]) {
+      ctx.fillRect(x, y, 2, 2);
+    }
+  } else if (id === "gloop") {
+    ctx.fillStyle = "#6aa8e8";
+    ctx.beginPath();
+    ctx.moveTo(-8, -4);
+    ctx.quadraticCurveTo(-10, 12, 0, 12);
+    ctx.quadraticCurveTo(12, 12, 8, -4);
+    ctx.quadraticCurveTo(0, 2, -8, -4);
+    ctx.fill();
+    ctx.fillStyle = "#f6d36b";
+    ctx.beginPath();
+    ctx.arc(-4, -8, 3, 0, Math.PI * 2);
+    ctx.arc(5, -9, 2.4, 0, Math.PI * 2);
+    ctx.fill();
+  } else if (id === "pip") {
+    ctx.fillStyle = "#f0b7a4";
+    ctx.beginPath();
+    ctx.moveTo(0, -12);
+    ctx.lineTo(10, 10);
+    ctx.lineTo(-10, 10);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = "#1b1916";
+    ctx.beginPath();
+    ctx.arc(0, 2, 1.6, 0, Math.PI * 2);
+    ctx.fill();
+  } else if (id === "moth") {
+    ctx.fillStyle = "#d7c6ef";
+    ctx.beginPath();
+    ctx.ellipse(-7, 0, 7, 10, -0.4, 0, Math.PI * 2);
+    ctx.ellipse(7, 0, 7, 10, 0.4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#6b5a86";
+    ctx.fillRect(-2, -8, 4, 16);
+  } else if (id === "beak") {
+    ctx.fillStyle = "#f4efe4";
+    ctx.beginPath();
+    ctx.arc(0, 2, 8, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#e07a3d";
+    ctx.beginPath();
+    ctx.moveTo(-3, 4);
+    ctx.lineTo(8, 6);
+    ctx.lineTo(-3, 8);
+    ctx.fill();
+    ctx.strokeStyle = "#1b1916";
+    ctx.beginPath();
+    ctx.arc(-2, 0, 4, 0, Math.PI * 2);
+    ctx.stroke();
+  } else if (id === "sock") {
+    ctx.fillStyle = "#d9897b";
+    ctx.beginPath();
+    ctx.moveTo(-5, -12);
+    ctx.lineTo(4, -12);
+    ctx.lineTo(4, 4);
+    ctx.lineTo(10, 8);
+    ctx.lineTo(6, 12);
+    ctx.lineTo(-5, 6);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = "#1b1916";
+    ctx.beginPath();
+    ctx.arc(-1, -4, 1.2, 0, Math.PI * 2);
+    ctx.arc(2, -4, 1.2, 0, Math.PI * 2);
+    ctx.fill();
+  } else if (id === "croissant") {
+    ctx.strokeStyle = "#e6c98a";
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.arc(0, 2, 9, Math.PI * 0.85, Math.PI * 0.15, true);
+    ctx.stroke();
+    ctx.fillStyle = "#9f3040";
+    ctx.beginPath();
+    ctx.moveTo(-2, -8);
+    ctx.lineTo(2, -14);
+    ctx.lineTo(6, -8);
+    ctx.fill();
+  } else if (id === "lantern") {
+    ctx.fillStyle = "#f6d36b";
+    ctx.fillRect(-7, -6, 14, 14);
+    ctx.fillStyle = "#1b1916";
+    ctx.fillRect(-2, -10, 4, 4);
+    ctx.beginPath();
+    ctx.arc(-2, 0, 1.2, 0, Math.PI * 2);
+    ctx.arc(3, 0, 1.2, 0, Math.PI * 2);
+    ctx.fill();
+  } else if (id === "wobble") {
+    ctx.fillStyle = "#8fd0a8";
+    ctx.beginPath();
+    ctx.arc(0, 8, 7, 0, Math.PI * 2);
+    ctx.arc(0, 0, 6, 0, Math.PI * 2);
+    ctx.arc(0, -8, 5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#f6d36b";
+    ctx.beginPath();
+    ctx.moveTo(-4, -12);
+    ctx.lineTo(0, -18);
+    ctx.lineTo(4, -12);
+    ctx.fill();
+  } else if (id === "shedeur") {
+    const skin = "#8fd0a8";
+    const brown = "#3c2415";
+    const orange = "#ff6a00";
+    ctx.fillStyle = "#f4efe4";
+    ctx.fillRect(-5, 10, 3.4, 6);
+    ctx.fillRect(1.6, 10, 3.4, 6);
+    ctx.fillStyle = skin;
+    ctx.fillRect(-14, -1, 7, 3.4);
+    ctx.fillRect(7, -1, 7, 3.4);
+    ctx.fillStyle = brown;
+    ctx.beginPath();
+    ctx.moveTo(-7, -4);
+    ctx.lineTo(-10, -1);
+    ctx.lineTo(-7, 2);
+    ctx.lineTo(-6, 11);
+    ctx.lineTo(6, 11);
+    ctx.lineTo(7, 2);
+    ctx.lineTo(10, -1);
+    ctx.lineTo(7, -4);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = orange;
+    ctx.fillRect(-7, -4, 14, 2.2);
+    ctx.fillRect(-10, -1, 3, 1.4);
+    ctx.fillRect(7, -1, 3, 1.4);
+    ctx.font = "bold 8px Segoe UI, sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.lineJoin = "round";
+    ctx.lineWidth = 2.2;
+    ctx.strokeStyle = "#fff";
+    ctx.strokeText("2", 0, 4);
+    ctx.fillStyle = orange;
+    ctx.fillText("2", 0, 4);
+    ctx.fillStyle = skin;
+    ctx.beginPath();
+    ctx.arc(0, -9, 5.6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#1b1916";
+    ctx.beginPath();
+    ctx.arc(-2.1, -10.2, 0.85, 0, Math.PI * 2);
+    ctx.arc(2.1, -10.2, 0.85, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(0, -8.4, 3.3, 0.08 * Math.PI, 0.92 * Math.PI);
+    ctx.fill();
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(-2.4, -7.5, 4.8, 1.5);
+    ctx.save();
+    ctx.translate(13.4, 0.5);
+    ctx.fillStyle = "#d7dee4";
+    ctx.fillRect(-1.3, -2.6, 2.6, 5.6);
+    ctx.beginPath();
+    for (let i = 0; i < 8; i += 1) {
+      const angle = Math.PI / 8 + (i * Math.PI) / 4;
+      const px = Math.cos(angle) * 3.3;
+      const py = Math.sin(angle) * 3.3;
+      if (i === 0) {
+        ctx.moveTo(px, py);
+      } else {
+        ctx.lineTo(px, py);
+      }
+    }
+    ctx.closePath();
+    ctx.fillStyle = "#eef2f5";
+    ctx.fill();
+    ctx.lineWidth = 0.7;
+    ctx.strokeStyle = "#8b97a3";
+    ctx.stroke();
+    ctx.fillStyle = "#16305c";
+    ctx.beginPath();
+    ctx.arc(0, 0, 1.6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "#f4efe4";
+    ctx.lineWidth = 0.55;
+    ctx.beginPath();
+    ctx.moveTo(0, 0.2);
+    ctx.lineTo(0, -1.15);
+    ctx.moveTo(0, 0.2);
+    ctx.lineTo(0.85, 0.55);
+    ctx.stroke();
+    ctx.restore();
+  } else if (id === "kevin") {
+    ctx.fillStyle = "#f2c84b";
+    ctx.beginPath();
+    ctx.ellipse(0, -1, 7.4, 11.4, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.save();
+    ctx.beginPath();
+    ctx.ellipse(0, -1, 7.4, 11.4, 0, 0, Math.PI * 2);
+    ctx.clip();
+    ctx.fillStyle = "#2f5f9e";
+    ctx.fillRect(-8, 2.2, 16, 12);
+    ctx.strokeStyle = "#1b1916";
+    ctx.lineWidth = 1.15;
+    ctx.beginPath();
+    ctx.moveTo(-2.3, 2.4);
+    ctx.lineTo(-3.5, 10.2);
+    ctx.moveTo(2.3, 2.4);
+    ctx.lineTo(3.5, 10.2);
+    ctx.stroke();
+    ctx.restore();
+    ctx.fillStyle = "#f2c84b";
+    ctx.fillRect(-12.4, -2.4, 5.4, 3.6);
+    ctx.fillRect(7, -2.4, 5.4, 3.6);
+    ctx.fillStyle = "#2a2622";
+    ctx.fillRect(-12.6, -2.2, 2.8, 3.3);
+    ctx.fillRect(9.6, -2.2, 2.8, 3.3);
+    ctx.fillStyle = "#3a342c";
+    ctx.fillRect(-5.4, 8.8, 3.8, 2.6);
+    ctx.fillRect(1.6, 8.8, 3.8, 2.6);
+    ctx.fillStyle = "#c5ced6";
+    ctx.fillRect(-5.4, 11, 3.8, 0.7);
+    ctx.fillRect(1.6, 11, 3.8, 0.7);
+    ctx.fillStyle = "#d5dbe3";
+    ctx.fillRect(-6.6, -6.4, 13.2, 4.2);
+    ctx.fillStyle = "#f7f4ee";
+    ctx.beginPath();
+    ctx.arc(-2.5, -4.3, 2.15, 0, Math.PI * 2);
+    ctx.arc(2.5, -4.3, 2.15, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "#8b97a3";
+    ctx.lineWidth = 0.7;
+    ctx.stroke();
+    ctx.fillStyle = "#5b4636";
+    ctx.beginPath();
+    ctx.arc(-2.5, -4.2, 0.85, 0, Math.PI * 2);
+    ctx.arc(2.5, -4.2, 0.85, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "#1b1916";
+    ctx.lineWidth = 1.05;
+    ctx.beginPath();
+    ctx.arc(0, -1.5, 2.5, 0.12 * Math.PI, 0.88 * Math.PI);
+    ctx.stroke();
+    ctx.fillStyle = "#3a342c";
+    ctx.beginPath();
+    ctx.moveTo(-1.4, -11.6);
+    ctx.lineTo(0.1, -15.6);
+    ctx.lineTo(1.7, -11.6);
+    ctx.closePath();
+    ctx.moveTo(1.5, -11.2);
+    ctx.lineTo(3.8, -14.6);
+    ctx.lineTo(4, -10.8);
+    ctx.closePath();
+    ctx.fill();
+  } else if (id === "quiet") {
+    ctx.fillStyle = "#c5d0de";
+    ctx.beginPath();
+    ctx.arc(-6, 4, 4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "#f4efe4";
+    ctx.strokeRect(-2, -12, 16, 10);
+  } else {
+    ctx.fillStyle = "#8fd0a8";
+    ctx.beginPath();
+    ctx.arc(0, 0, 10, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#162016";
+    ctx.beginPath();
+    ctx.arc(-4, -1, 1.5, 0, Math.PI * 2);
+    ctx.arc(0, -2, 1.5, 0, Math.PI * 2);
+    ctx.arc(4, -1, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+function spawnGuest(alienId) {
+  const width = flightCanvas.clientWidth || window.innerWidth;
+  guests.push({
+    id: alienId,
+    x: -50,
+    y: 90 + Math.random() * Math.max(40, (flightCanvas.clientHeight || 400) * 0.35),
+    speed: 78,
+    wobble: Math.random() * Math.PI * 2,
+  });
+  if (guests.length > 3) {
+    guests.shift();
+  }
+}
+
+function paintAstronaut(ctx) {
+  ctx.save();
+  ctx.translate(0, -15);
+  ctx.fillStyle = "#c5ced6";
+  ctx.fillRect(-6.5, 0, 3.2, 6);
+  ctx.fillStyle = "#f7f4ee";
+  ctx.fillRect(-3.2, -0.5, 7.2, 7.2);
+  ctx.fillRect(-2.4, 6.4, 2.1, 3.4);
+  ctx.fillRect(1.2, 6.4, 2.1, 3.4);
+  ctx.beginPath();
+  ctx.arc(0.4, -5.2, 4.6, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "#7eb6e6";
+  ctx.beginPath();
+  ctx.ellipse(1.5, -5.1, 2.2, 2.8, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
+function paintRider(ctx) {
+  if (!stats.rider || !stats.aliens.includes(stats.rider)) {
+    return;
+  }
+  const elapsed = (performance.now() - riderCheer) / 1000;
+  const dancing = riderCheer > 0 && elapsed < 1.8;
+  ctx.save();
+  ctx.translate(-13, -18);
+  if (dancing) {
+    const hop = Math.abs(Math.sin(elapsed * Math.PI * 3.4)) * 11;
+    const sway = Math.sin(elapsed * Math.PI * 6.2) * 0.42;
+    ctx.translate(0, -hop);
+    ctx.rotate(sway);
+    ctx.fillStyle = "#f4d35e";
+    for (let index = 0; index < 3; index += 1) {
+      const spark = (elapsed * 1.6 + index / 3) % 1;
+      ctx.globalAlpha = 0.9 * (1 - spark);
+      ctx.beginPath();
+      ctx.arc(Math.sin(index * 2.1) * 16, -6 - spark * 18, 1.4, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  }
+  ctx.scale(0.62, 0.62);
+  paintAlien(ctx, stats.rider);
+  ctx.restore();
+}
+
 function drawRocket(x, y, color) {
   flightCtx.save();
   flightCtx.translate(x, y);
-  flightCtx.fillStyle = color;
-  flightCtx.beginPath();
-  flightCtx.moveTo(16, 0);
-  flightCtx.lineTo(-12, -6);
-  flightCtx.lineTo(-7, 0);
-  flightCtx.lineTo(-12, 6);
-  flightCtx.closePath();
-  flightCtx.fill();
+  paintShip(flightCtx, stats.ship || "dart", color);
+  paintRider(flightCtx);
+  paintAstronaut(flightCtx);
   flightCtx.restore();
 }
 
@@ -759,6 +2409,21 @@ function drawFlight(now) {
     }
   }
 
+  flightCtx.globalAlpha = 1;
+  for (let index = guests.length - 1; index >= 0; index -= 1) {
+    const guest = guests[index];
+    guest.x += guest.speed * dt;
+    const bob = Math.sin(flightClock * 3 + guest.wobble) * 6;
+    flightCtx.save();
+    flightCtx.translate(guest.x, guest.y + bob);
+    flightCtx.scale(1.8, 1.8);
+    paintAlien(flightCtx, guest.id);
+    flightCtx.restore();
+    if (guest.x > width + 80) {
+      guests.splice(index, 1);
+    }
+  }
+
   if (activeCheckpoint) {
     const wide = activeCheckpoint.name === "Constellation";
     const dockX = width - (wide ? 156 : 84);
@@ -766,8 +2431,10 @@ function drawFlight(now) {
     const glide = Math.min(1, dt * 1.4);
     activeCheckpoint.x += (dockX - activeCheckpoint.x) * glide;
     activeCheckpoint.y += (dockY - activeCheckpoint.y) * glide;
-    flightCtx.globalAlpha = 0.95;
-    drawCheckpointGraphic(activeCheckpoint.name, activeCheckpoint.x, activeCheckpoint.y);
+    if (currentScreen === "trivia") {
+      flightCtx.globalAlpha = 0.95;
+      drawCheckpointGraphic(activeCheckpoint.name, activeCheckpoint.x, activeCheckpoint.y);
+    }
   }
 
   const rocketX = width * 0.28 + Math.sin(flightClock * 0.65) * width * 0.24;
@@ -775,10 +2442,10 @@ function drawFlight(now) {
   drawRocket(rocketX, rocketY, accent);
 
   const tracker = checkpointName(stats.currentStreak);
-  if (tracker !== "—") {
+  if (currentScreen === "trivia" && tracker !== "—") {
     flightCtx.globalAlpha = 0.9;
     flightCtx.fillStyle = text;
-    flightCtx.font = "15px Segoe UI, sans-serif";
+    flightCtx.font = "700 15px Fredoka, sans-serif";
     flightCtx.textAlign = "right";
     flightCtx.textBaseline = "top";
     flightCtx.fillText(tracker, width - 16, 6);
@@ -789,6 +2456,10 @@ function drawFlight(now) {
 }
 
 requestAnimationFrame(drawFlight);
+
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("sw.js").catch(() => {});
+}
 
 fetch("questions.json")
   .then((response) => response.json())

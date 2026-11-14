@@ -1,0 +1,8 @@
+Fredoka
+Copyright 2021 The Fredoka Project Authors (https://github.com/googlefonts/fredoka)
+
+Lilita One
+Copyright 2011 The Lilita One Project Authors (https://github.com/googlefonts/lilita)
+
+These fonts are licensed under the SIL Open Font License, Version 1.1.
+The license is at https://openfontlicense.org
