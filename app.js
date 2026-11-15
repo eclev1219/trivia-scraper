@@ -1294,6 +1294,44 @@ function trapTune() {
   return { events, loopSeconds: 6.4 };
 }
 
+function oceanTune() {
+  // Original slow R&B loop: soft electric-piano chords, a quiet pocket, and a short airy line.
+  const events = [];
+  const bars = [
+    { bass: 46, chord: [58, 62, 65, 69], time: 0 },
+    { bass: 43, chord: [55, 58, 62, 65], time: 2 },
+    { bass: 51, chord: [58, 63, 67, 70], time: 4 },
+    { bass: 41, chord: [53, 57, 60, 65], time: 6 },
+  ];
+  for (const bar of bars) {
+    events.push({ note: bar.bass, time: bar.time, duration: 1.6, wave: "sine", volume: 0.11 });
+    events.push({ note: bar.bass, time: bar.time + 1.25, duration: 0.4, wave: "sine", volume: 0.06 });
+    for (const note of bar.chord) {
+      events.push({ note, time: bar.time + 0.03, duration: 1.85, wave: "sine", volume: 0.04 });
+      events.push({ note: note + 12, time: bar.time + 0.08, duration: 1.5, wave: "triangle", volume: 0.018 });
+    }
+    events.push({ noise: true, time: bar.time + 1, duration: 0.08, frequency: 1600, volume: 0.035 });
+  }
+  for (let step = 0; step < 16; step += 1) {
+    events.push({
+      noise: true,
+      time: step * 0.5,
+      duration: 0.03,
+      frequency: 6200,
+      volume: step % 2 === 0 ? 0.012 : 0.007,
+    });
+  }
+  const melody = [
+    [0.35, 77], [1.15, 74], [1.9, 72], [2.7, 74],
+    [3.55, 70], [4.45, 72], [5.3, 77], [6.15, 74], [7.05, 72],
+  ];
+  for (const [time, note] of melody) {
+    events.push({ note, time, duration: 0.7, wave: "triangle", volume: 0.07 });
+    events.push({ note: note + 12, time: time + 0.02, duration: 0.45, wave: "sine", volume: 0.025 });
+  }
+  return { events, loopSeconds: 8 };
+}
+
 function nightTune() {
   const events = [];
   const chords = [
@@ -1333,6 +1371,7 @@ function startMusic(kind) {
     bossa: bossaTune,
     night: nightTune,
     trap: trapTune,
+    ocean: oceanTune,
   };
   if (kind === "rain") {
     musicMaster.gain.value = 0.9;
@@ -1676,12 +1715,31 @@ for (const button of document.querySelectorAll("[data-theme-choice]")) {
 }
 
 const musicBox = document.querySelector("#music-choices");
-if (musicBox && !musicBox.querySelector("[data-music-choice='trap']")) {
-  const trapButton = document.createElement("button");
-  trapButton.type = "button";
-  trapButton.dataset.musicChoice = "trap";
-  trapButton.textContent = "Trap";
-  musicBox.append(trapButton);
+const musicOptions = [
+  ["off", "Off"],
+  ["soft", "Soft hum"],
+  ["bright", "Bright hum"],
+  ["jazz", "Jazz"],
+  ["space", "Retro space"],
+  ["classical", "Classical"],
+  ["lofi", "Lofi"],
+  ["rain", "Rain"],
+  ["bossa", "Bossa"],
+  ["night", "Night"],
+  ["trap", "Trap"],
+  ["ocean", "Ocean"],
+];
+if (musicBox) {
+  for (const [id, label] of musicOptions) {
+    if (musicBox.querySelector(`[data-music-choice="${id}"]`)) {
+      continue;
+    }
+    const button = document.createElement("button");
+    button.type = "button";
+    button.dataset.musicChoice = id;
+    button.textContent = label;
+    musicBox.append(button);
+  }
 }
 
 for (const button of document.querySelectorAll("[data-music-choice]")) {
