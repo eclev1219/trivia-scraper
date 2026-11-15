@@ -1,0 +1,359 @@
+[
+  {
+    "category": "Music",
+    "difficulty": "easy",
+    "question": "Which group released the songs Dynamite and Butter?",
+    "correct_answer": "BTS",
+    "incorrect_answers": ["BLACKPINK", "EXO", "Twice"]
+  },
+  {
+    "category": "Music",
+    "difficulty": "easy",
+    "question": "The Metropolitan Opera is in which city?",
+    "correct_answer": "New York",
+    "incorrect_answers": ["London", "Paris", "Milan"]
+  },
+  {
+    "category": "Music",
+    "difficulty": "easy",
+    "question": "The musical Annie is about which kind of character?",
+    "correct_answer": "An orphan",
+    "incorrect_answers": ["A pirate", "A queen", "A detective"]
+  },
+  {
+    "category": "Music",
+    "difficulty": "easy",
+    "question": "The musical Hamilton is about which historical figure?",
+    "correct_answer": "Alexander Hamilton",
+    "incorrect_answers": ["George Washington", "Benjamin Franklin", "Thomas Jefferson"]
+  },
+  {
+    "category": "Music",
+    "difficulty": "medium",
+    "question": "In an orchestra, the concertmaster usually plays which instrument?",
+    "correct_answer": "Violin",
+    "incorrect_answers": ["Cello", "Flute", "Trumpet"]
+  },
+  {
+    "category": "Film & TV",
+    "difficulty": "easy",
+    "question": "In The Wizard of Oz, what is Dorothy's dog named?",
+    "correct_answer": "Toto",
+    "incorrect_answers": ["Rex", "Buddy", "Max"]
+  },
+  {
+    "category": "Film & TV",
+    "difficulty": "easy",
+    "question": "In Frozen, what is the name of Elsa's kingdom?",
+    "correct_answer": "Arendelle",
+    "incorrect_answers": ["Corona", "Atlantica", "Agrabah"]
+  },
+  {
+    "category": "Film & TV",
+    "difficulty": "easy",
+    "question": "In The Lion King, what is the name of Simba's father?",
+    "correct_answer": "Mufasa",
+    "incorrect_answers": ["Scar", "Rafiki", "Timon"]
+  },
+  {
+    "category": "Film & TV",
+    "difficulty": "easy",
+    "question": "Who directed the movie Jaws?",
+    "correct_answer": "Steven Spielberg",
+    "incorrect_answers": ["George Lucas", "Ridley Scott", "James Cameron"]
+  },
+  {
+    "category": "Film & TV",
+    "difficulty": "easy",
+    "question": "Who directed the Lord of the Rings film trilogy?",
+    "correct_answer": "Peter Jackson",
+    "incorrect_answers": ["Steven Spielberg", "Christopher Nolan", "James Cameron"]
+  },
+  {
+    "category": "Film & TV",
+    "difficulty": "easy",
+    "question": "What is the name of the wizarding school in the Harry Potter stories?",
+    "correct_answer": "Hogwarts",
+    "incorrect_answers": ["Beauxbatons", "Durmstrang", "Ilvermorny"]
+  },
+  {
+    "category": "Film & TV",
+    "difficulty": "easy",
+    "question": "What is the name of Harry Potter's owl?",
+    "correct_answer": "Hedwig",
+    "incorrect_answers": ["Errol", "Pigwidgeon", "Crookshanks"]
+  },
+  {
+    "category": "Film & TV",
+    "difficulty": "easy",
+    "question": "In the original Star Wars film, what color is Luke Skywalker's lightsaber?",
+    "correct_answer": "Blue",
+    "incorrect_answers": ["Green", "Red", "Purple"]
+  },
+  {
+    "category": "Film & TV",
+    "difficulty": "easy",
+    "question": "What is the name of Han Solo's ship in Star Wars?",
+    "correct_answer": "The Millennium Falcon",
+    "incorrect_answers": ["The Enterprise", "The Serenity", "The Razor Crest"]
+  },
+  {
+    "category": "Film & TV",
+    "difficulty": "easy",
+    "question": "The line \"I'll be back\" is spoken by the title character of which movie?",
+    "correct_answer": "The Terminator",
+    "incorrect_answers": ["RoboCop", "Predator", "Alien"]
+  },
+  {
+    "category": "Film & TV",
+    "difficulty": "easy",
+    "question": "The television show Friends is set mainly in which city?",
+    "correct_answer": "New York",
+    "incorrect_answers": ["Los Angeles", "Chicago", "Boston"]
+  },
+  {
+    "category": "Film & TV",
+    "difficulty": "easy",
+    "question": "How many people are in the main group of friends on the show Friends?",
+    "correct_answer": "6",
+    "incorrect_answers": ["4", "5", "7"]
+  },
+  {
+    "category": "Film & TV",
+    "difficulty": "easy",
+    "question": "The American version of The Office is set in which Pennsylvania city?",
+    "correct_answer": "Scranton",
+    "incorrect_answers": ["Philadelphia", "Pittsburgh", "Harrisburg"]
+  },
+  {
+    "category": "Film & TV",
+    "difficulty": "easy",
+    "question": "What is the name of the paper company in the American version of The Office?",
+    "correct_answer": "Dunder Mifflin",
+    "incorrect_answers": ["Wernham Hogg", "Sterling Cooper", "Initech"]
+  },
+  {
+    "category": "Film & TV",
+    "difficulty": "easy",
+    "question": "Which television show follows plane-crash survivors on a mysterious island?",
+    "correct_answer": "Lost",
+    "incorrect_answers": ["Cast Away", "Survivor", "Gilligan's Island"]
+  },
+  {
+    "category": "Film & TV",
+    "difficulty": "easy",
+    "question": "Stranger Things is set in which fictional Indiana town?",
+    "correct_answer": "Hawkins",
+    "incorrect_answers": ["Derry", "Twin Peaks", "Sunnydale"]
+  },
+  {
+    "category": "Film & TV",
+    "difficulty": "easy",
+    "question": "What is the name of Mickey Mouse's dog?",
+    "correct_answer": "Pluto",
+    "incorrect_answers": ["Goofy", "Max", "Bruno"]
+  },
+  {
+    "category": "Film & TV",
+    "difficulty": "easy",
+    "question": "What is the name of Batman's butler?",
+    "correct_answer": "Alfred",
+    "incorrect_answers": ["Jarvis", "Lucius", "Gordon"]
+  },
+  {
+    "category": "Film & TV",
+    "difficulty": "easy",
+    "question": "What is the name of Superman's home planet?",
+    "correct_answer": "Krypton",
+    "incorrect_answers": ["Mars", "Asgard", "Gallifrey"]
+  },
+  {
+    "category": "Film & TV",
+    "difficulty": "easy",
+    "question": "What is Spider-Man's real name?",
+    "correct_answer": "Peter Parker",
+    "incorrect_answers": ["Clark Kent", "Bruce Wayne", "Tony Stark"]
+  },
+  {
+    "category": "Film & TV",
+    "difficulty": "easy",
+    "question": "The movie Titanic is about a ship that sank in which year?",
+    "correct_answer": "1912",
+    "incorrect_answers": ["1905", "1918", "1929"]
+  },
+  {
+    "category": "Film & TV",
+    "difficulty": "easy",
+    "question": "Who directed the movie Titanic?",
+    "correct_answer": "James Cameron",
+    "incorrect_answers": ["Steven Spielberg", "Ridley Scott", "Ron Howard"]
+  },
+  {
+    "category": "Film & TV",
+    "difficulty": "easy",
+    "question": "In the movie Jaws, the shark is which species?",
+    "correct_answer": "A great white shark",
+    "incorrect_answers": ["A hammerhead shark", "A tiger shark", "A whale shark"]
+  },
+  {
+    "category": "Film & TV",
+    "difficulty": "easy",
+    "question": "In Finding Nemo, what kind of fish is Nemo?",
+    "correct_answer": "A clownfish",
+    "incorrect_answers": ["A tang", "A pufferfish", "A seahorse"]
+  },
+  {
+    "category": "Film & TV",
+    "difficulty": "easy",
+    "question": "In Toy Story, what is the name of the cowboy doll?",
+    "correct_answer": "Woody",
+    "incorrect_answers": ["Buzz", "Jessie", "Rex"]
+  },
+  {
+    "category": "Film & TV",
+    "difficulty": "easy",
+    "question": "Buzz Lightyear's catchphrase ends with which word?",
+    "correct_answer": "Beyond",
+    "incorrect_answers": ["Forever", "Tomorrow", "Always"]
+  },
+  {
+    "category": "Film & TV",
+    "difficulty": "easy",
+    "question": "Which animated movie is about a rat who wants to cook in Paris?",
+    "correct_answer": "Ratatouille",
+    "incorrect_answers": ["Flushed Away", "The Secret of NIMH", "An American Tail"]
+  },
+  {
+    "category": "Film & TV",
+    "difficulty": "easy",
+    "question": "In Frozen, what is the name of Elsa's sister?",
+    "correct_answer": "Anna",
+    "incorrect_answers": ["Ariel", "Moana", "Merida"]
+  },
+  {
+    "category": "Film & TV",
+    "difficulty": "easy",
+    "question": "On the singing show The Voice, the coaches do what when they want a singer?",
+    "correct_answer": "Turn their chairs around",
+    "incorrect_answers": ["Press a buzzer", "Hold up a score card", "Ring a bell"]
+  },
+  {
+    "category": "Film & TV",
+    "difficulty": "easy",
+    "question": "The Simpsons live in which fictional town?",
+    "correct_answer": "Springfield",
+    "incorrect_answers": ["Quahog", "South Park", "Bedrock"]
+  },
+  {
+    "category": "Film & TV",
+    "difficulty": "easy",
+    "question": "Homer Simpson works at what kind of plant?",
+    "correct_answer": "A nuclear power plant",
+    "incorrect_answers": ["A car factory", "A chocolate factory", "A water treatment plant"]
+  },
+  {
+    "category": "Film & TV",
+    "difficulty": "medium",
+    "question": "The television show Game of Thrones is based on books by whom?",
+    "correct_answer": "George R. R. Martin",
+    "incorrect_answers": ["J. R. R. Tolkien", "Robert Jordan", "Patrick Rothfuss"]
+  },
+  {
+    "category": "Film & TV",
+    "difficulty": "easy",
+    "question": "In Black Panther, what is the name of the kingdom?",
+    "correct_answer": "Wakanda",
+    "incorrect_answers": ["Latveria", "Genosha", "Zamunda"]
+  },
+  {
+    "category": "Film & TV",
+    "difficulty": "easy",
+    "question": "Who wears the Iron Man armor?",
+    "correct_answer": "Tony Stark",
+    "incorrect_answers": ["Steve Rogers", "Bruce Banner", "Peter Parker"]
+  },
+  {
+    "category": "Film & TV",
+    "difficulty": "easy",
+    "question": "Which studio made Toy Story, the first fully computer-animated feature film?",
+    "correct_answer": "Pixar",
+    "incorrect_answers": ["DreamWorks", "Illumination", "Laika"]
+  },
+  {
+    "category": "Film & TV",
+    "difficulty": "easy",
+    "question": "What is the family name of the crime family in The Godfather?",
+    "correct_answer": "Corleone",
+    "incorrect_answers": ["Soprano", "Gambino", "Barzini"]
+  },
+  {
+    "category": "Film & TV",
+    "difficulty": "easy",
+    "question": "Who played Jack Dawson in the movie Titanic?",
+    "correct_answer": "Leonardo DiCaprio",
+    "incorrect_answers": ["Brad Pitt", "Matt Damon", "Johnny Depp"]
+  },
+  {
+    "category": "Film & TV",
+    "difficulty": "medium",
+    "question": "Who played the Joker in The Dark Knight?",
+    "correct_answer": "Heath Ledger",
+    "incorrect_answers": ["Jack Nicholson", "Joaquin Phoenix", "Jared Leto"]
+  },
+  {
+    "category": "Film & TV",
+    "difficulty": "easy",
+    "question": "In Breaking Bad, Walter White starts the story as a teacher of which subject?",
+    "correct_answer": "Chemistry",
+    "incorrect_answers": ["Biology", "Physics", "Mathematics"]
+  },
+  {
+    "category": "Film & TV",
+    "difficulty": "easy",
+    "question": "Grey's Anatomy follows doctors at a hospital in which city?",
+    "correct_answer": "Seattle",
+    "incorrect_answers": ["Chicago", "Boston", "Miami"]
+  },
+  {
+    "category": "Film & TV",
+    "difficulty": "easy",
+    "question": "What is the name of the small green character protected by the Mandalorian?",
+    "correct_answer": "Grogu",
+    "incorrect_answers": ["Yoda", "Jabba", "Wicket"]
+  },
+  {
+    "category": "Film & TV",
+    "difficulty": "easy",
+    "question": "What is the name of the main character in The Hunger Games?",
+    "correct_answer": "Katniss Everdeen",
+    "incorrect_answers": ["Hermione Granger", "Bella Swan", "Tris Prior"]
+  },
+  {
+    "category": "Film & TV",
+    "difficulty": "easy",
+    "question": "Which film series features a DeLorean time machine?",
+    "correct_answer": "Back to the Future",
+    "incorrect_answers": ["Bill and Ted", "The Terminator", "Doctor Who"]
+  },
+  {
+    "category": "Film & TV",
+    "difficulty": "medium",
+    "question": "In the first Back to the Future, Marty travels from 1985 to which year?",
+    "correct_answer": "1955",
+    "incorrect_answers": ["1950", "1965", "2015"]
+  },
+  {
+    "category": "Film & TV",
+    "difficulty": "easy",
+    "question": "Seinfeld was often described as a show about what?",
+    "correct_answer": "Nothing",
+    "incorrect_answers": ["A detective agency", "A hospital", "A spaceship"]
+  },
+  {
+    "category": "Film & TV",
+    "difficulty": "easy",
+    "question": "Central Perk is the coffee shop in which television show?",
+    "correct_answer": "Friends",
+    "incorrect_answers": ["Frasier", "Seinfeld", "How I Met Your Mother"]
+  }
+]

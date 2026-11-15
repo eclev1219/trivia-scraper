@@ -26,6 +26,7 @@
           <button type="button" id="open-shop">Shop</button>
           <button type="button" id="open-hangar">Hangar</button>
           <button type="button" id="open-species">Species book</button>
+          <button type="button" id="open-category">Category mode</button>
           <button type="button" id="open-settings">Settings</button>
         </div>
         <div class="home-credits">
@@ -43,7 +44,10 @@
     </section>
 
     <section id="trivia" class="screen hidden">
-      <button type="button" class="text-button" id="trivia-home">Home</button>
+      <div class="screen-nav">
+        <button type="button" class="text-button" id="trivia-home">Home</button>
+        <button type="button" class="text-button hidden" id="trivia-categories">Categories</button>
+      </div>
       <p id="question-meta" class="eyebrow"></p>
       <h2 id="question-text"></h2>
       <div id="choices" class="stack"></div>
@@ -88,6 +92,13 @@
       <h1>Hangar</h1>
       <p class="lede">Tap a ship to fly it.</p>
       <div id="ship-book" class="catalog"></div>
+    </section>
+
+    <section id="category" class="screen hidden">
+      <button type="button" class="text-button" id="category-home">Home</button>
+      <h1>Category mode</h1>
+      <p class="lede">Pick a category and play for fun. Each correct answer is 1 space dust. No streaks, checkpoints, records, or new aliens.</p>
+      <div id="category-list" class="stack"></div>
     </section>
 
     <section id="settings" class="screen hidden">
