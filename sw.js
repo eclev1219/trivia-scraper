@@ -1,4 +1,4 @@
-const CACHE = "trivianaut-v18";
+const CACHE = "trivianaut-v19";
 const FILES = [
   "./",
   "./index.html",
@@ -11,6 +11,7 @@ const FILES = [
   "./fonts/lilita-latin-ext.woff2",
   "./questions.json",
   "./manifest.webmanifest",
+  "./icon-180.png",
   "./icon-192.png",
   "./icon-512.png",
 ];
