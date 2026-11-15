@@ -58,6 +58,10 @@ const ALIENS = [
   { id: "lantern", name: "Lady Lantern", rarity: "rare", note: "Lights the way, then asks if you brought snacks." },
   { id: "shedeur", name: "Shedeur", rarity: "rare", note: "Browns No. 2, an AP on the wrist, and a smile wider than the end zone." },
   { id: "kevin", name: "Kevin", rarity: "rare", note: "Two eyes, blue overalls, and a grin that survives reentry." },
+  { id: "chewie", name: "Chewbacca", rarity: "rare", note: "A tall walk of brown fur and a bandolier. The roar is a full sentence." },
+  { id: "grogu", name: "Grogu", rarity: "rare", note: "Green ears, a brown robe, and a very serious snack policy." },
+  { id: "rocket", name: "Rocket", rarity: "rare", note: "A small raccoon in an orange flight suit. The attitude is extra." },
+  { id: "groot", name: "Groot", rarity: "rare", note: "A sapling with a three-word vocabulary and excellent posture." },
   { id: "wobble", name: "King Wobble", rarity: "legendary", note: "Three blobs in a trench coat, and a crown." },
   { id: "quiet", name: "The Quiet Comet", rarity: "legendary", note: "Says nothing. The silence is very loud." },
 ];
@@ -79,6 +83,8 @@ const SHIPS = [
   { id: "hat", name: "Top Hat", rarity: "rare", note: "Tips itself when it passes a planet." },
   { id: "biscotti", name: "Biscotti", rarity: "rare", note: "A purple brontosaurus with a green belly. The neck is the antenna." },
   { id: "gru", name: "Gru's Ship", rarity: "rare", note: "A tall silver rocket with a red stripe. The fins mean business." },
+  { id: "falcon", name: "Millennium Falcon", rarity: "rare", note: "A round freighter with a side cockpit and two front mandibles." },
+  { id: "iron", name: "Iron Suit", rarity: "rare", note: "Red and gold, flying without a ship. The chest light is the engine." },
   { id: "whale", name: "Choir Whale", rarity: "legendary", note: "Sings directions. The chorus lasts four hours." },
   { id: "disco", name: "Disco Ball", rarity: "legendary", note: "The dance floor is the engine. Please hold on." },
 ];
@@ -364,20 +370,43 @@ function isBirthYear(question) {
   return /(?:in which year was|what year was|when was).+ born/i.test(question.question);
 }
 
+const FUN_CATEGORIES = new Set([
+  "General Knowledge",
+  "Food & Drink",
+  "Film & TV",
+  "Music",
+  "Sports",
+  "Sport & Leisure",
+  "Entertainment: Film",
+  "Entertainment: Television",
+  "Entertainment: Music",
+  "Entertainment: Books",
+  "Mythology",
+  "Art",
+  "Animals",
+]);
+
 function buildDeck() {
+  const fun = [];
   const preferred = [];
+  const births = [];
   const others = [];
   for (const question of questions) {
-    const general = PREFERRED_CATEGORIES.has(question.category) || question.source === "original";
-    if (general && !isBirthYear(question)) {
+    if (isBirthYear(question)) {
+      births.push(question);
+      continue;
+    }
+    if (question.source === "original" || FUN_CATEGORIES.has(question.category)) {
+      fun.push(question);
+    } else if (PREFERRED_CATEGORIES.has(question.category)) {
       preferred.push(question);
     } else {
       others.push(question);
     }
   }
-  // History, places, animals, and the added questions come up more often.
-  // Birth-year questions stay in the deck, but they are not doubled.
-  return shuffle([...preferred, ...preferred, ...others]);
+  // Fun general-knowledge questions come up most. Only a small handful of birth years stay in rotation.
+  const rareBirths = shuffle(births).slice(0, 80);
+  return shuffle([...fun, ...fun, ...fun, ...preferred, ...preferred, ...others, ...rareBirths]);
 }
 
 function drawQuestion() {
@@ -2270,6 +2299,56 @@ function paintShip(ctx, id, color) {
     ctx.beginPath();
     ctx.arc(1.9, -0.5, 1.25, 0, Math.PI * 2);
     ctx.fill();
+  } else if (id === "falcon") {
+    ctx.fillStyle = "#aeb8c2";
+    ctx.beginPath();
+    ctx.ellipse(-1, 0.5, 12, 8.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#8e99a4";
+    ctx.fillRect(7, -2.4, 9, 1.6);
+    ctx.fillRect(7, 1.4, 9, 1.6);
+    ctx.fillStyle = "#d7dee6";
+    ctx.beginPath();
+    ctx.ellipse(9.5, -6.2, 3.3, 2.1, -0.45, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "#6d7882";
+    ctx.lineWidth = 1.1;
+    ctx.beginPath();
+    ctx.moveTo(6.2, -5.2);
+    ctx.lineTo(2.2, -1.4);
+    ctx.stroke();
+    ctx.fillStyle = "#7d8b96";
+    ctx.beginPath();
+    ctx.arc(-6.5, -2.6, 1.7, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(-6.5, -2.6, 3.1, 0.2, Math.PI * 1.7);
+    ctx.stroke();
+  } else if (id === "iron") {
+    ctx.fillStyle = "#c4372f";
+    ctx.beginPath();
+    ctx.ellipse(-1, 0, 7.2, 4.2, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#e2b34a";
+    ctx.beginPath();
+    ctx.ellipse(7.4, 0, 3.5, 2.7, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#fff6e0";
+    ctx.fillRect(7.6, -0.7, 2.4, 0.55);
+    ctx.fillStyle = "#7fd4ff";
+    ctx.beginPath();
+    ctx.arc(-1.2, 0, 1.55, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#e2b34a";
+    ctx.fillRect(-12, -1.15, 5.2, 2.3);
+    ctx.fillStyle = "#c4372f";
+    ctx.fillRect(-3.2, -7.2, 2.3, 4.2);
+    ctx.fillRect(-3.2, 3, 2.3, 4.2);
+    ctx.fillStyle = "#f2d27a";
+    ctx.beginPath();
+    ctx.arc(-3.4, -7.6, 1.15, 0, Math.PI * 2);
+    ctx.arc(-3.4, 7.6, 1.15, 0, Math.PI * 2);
+    ctx.fill();
   } else if (id === "disco") {
     ctx.beginPath();
     ctx.arc(0, 0, 12, 0, Math.PI * 2);
@@ -2618,6 +2697,112 @@ function paintAlien(ctx, id) {
     ctx.lineTo(4, -10.8);
     ctx.closePath();
     ctx.fill();
+  } else if (id === "chewie") {
+    ctx.fillStyle = "#8a5a32";
+    ctx.fillRect(-4.2, -1, 8.4, 12);
+    ctx.beginPath();
+    ctx.arc(0, -5.5, 5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#6b4424";
+    ctx.beginPath();
+    ctx.ellipse(0, -3.8, 2.1, 1.5, 0, 0, Math.PI);
+    ctx.fill();
+    ctx.fillStyle = "#1b1916";
+    ctx.beginPath();
+    ctx.arc(-1.7, -6.4, 0.7, 0, Math.PI * 2);
+    ctx.arc(1.7, -6.4, 0.7, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "#d7c39a";
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.moveTo(-3.6, -0.5);
+    ctx.lineTo(3.8, 8);
+    ctx.stroke();
+    ctx.fillStyle = "#c4553a";
+    ctx.fillRect(-2.2, 0.4, 1.4, 1.4);
+    ctx.fillRect(-0.6, 2.2, 1.4, 1.4);
+    ctx.fillRect(1, 4, 1.4, 1.4);
+  } else if (id === "grogu") {
+    ctx.fillStyle = "#8d5a32";
+    ctx.beginPath();
+    ctx.ellipse(0, 5, 5.5, 6.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#7dba6a";
+    ctx.beginPath();
+    ctx.arc(0, -1.5, 4.6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(-6.6, -1.2, 4.2, 2.2, 0.35, 0, Math.PI * 2);
+    ctx.ellipse(6.6, -1.2, 4.2, 2.2, -0.35, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#1b1916";
+    ctx.beginPath();
+    ctx.ellipse(-1.7, -1.6, 1.35, 1.8, 0, 0, Math.PI * 2);
+    ctx.ellipse(1.7, -1.6, 1.35, 1.8, 0, 0, Math.PI * 2);
+    ctx.fill();
+  } else if (id === "rocket") {
+    ctx.fillStyle = "#8d6a45";
+    ctx.beginPath();
+    ctx.ellipse(0, 3, 4.6, 6.4, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#e07a2f";
+    ctx.fillRect(-3.8, 1, 7.6, 5.4);
+    ctx.fillStyle = "#d9d3c8";
+    ctx.beginPath();
+    ctx.arc(0, -4.2, 4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#3a342c";
+    ctx.beginPath();
+    ctx.ellipse(0, -3.4, 3.4, 2, 0, 0, Math.PI);
+    ctx.fill();
+    ctx.fillStyle = "#f7f4ee";
+    ctx.beginPath();
+    ctx.arc(-1.3, -4.6, 1.05, 0, Math.PI * 2);
+    ctx.arc(1.3, -4.6, 1.05, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#1b1916";
+    ctx.beginPath();
+    ctx.arc(-1.3, -4.6, 0.42, 0, Math.PI * 2);
+    ctx.arc(1.3, -4.6, 0.42, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "#6b4424";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(-2.6, 7);
+    ctx.quadraticCurveTo(-8, 9, -6, 13);
+    ctx.stroke();
+  } else if (id === "groot") {
+    ctx.fillStyle = "#8a5a32";
+    ctx.fillRect(-2.6, -1, 5.2, 12);
+    ctx.beginPath();
+    ctx.arc(0, -5, 3.6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "#6b4424";
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(-1.6, -7.4);
+    ctx.lineTo(-2.8, -12.4);
+    ctx.moveTo(0.8, -8);
+    ctx.lineTo(2.6, -13);
+    ctx.moveTo(0, -8.4);
+    ctx.lineTo(0.2, -14);
+    ctx.stroke();
+    ctx.fillStyle = "#6fbf62";
+    ctx.beginPath();
+    ctx.ellipse(-2.8, -12.2, 1.5, 0.9, 0.5, 0, Math.PI * 2);
+    ctx.ellipse(2.6, -12.8, 1.5, 0.9, -0.4, 0, Math.PI * 2);
+    ctx.ellipse(0.2, -14, 1.4, 0.85, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#1b1916";
+    ctx.beginPath();
+    ctx.arc(-1.2, -5.2, 0.6, 0, Math.PI * 2);
+    ctx.arc(1.2, -5.2, 0.6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "#c4553a";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(0, -3.6, 1.3, 0.15 * Math.PI, 0.85 * Math.PI);
+    ctx.stroke();
   } else if (id === "quiet") {
     ctx.fillStyle = "#c5d0de";
     ctx.beginPath();
