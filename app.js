@@ -46,61 +46,59 @@ const BOX_COST = 100;
 const DUPLICATE_REFUND = 40;
 
 const ALIENS = [
-  { id: "blobby", name: "Blobby McFloat", rarity: "common", note: "A polite sphere who apologizes to asteroids." },
-  { id: "noodle", name: "Noodle Neck", rarity: "common", note: "The neck arrived three weeks before the rest of him." },
+  { id: "blobby", name: "Blobby McFloat", rarity: "uncommon", note: "A polite sphere who apologizes to asteroids." },
+  { id: "noodle", name: "Noodle Neck", rarity: "uncommon", note: "The neck arrived three weeks before the rest of him." },
   { id: "whiskers", name: "Captain Whiskers", rarity: "uncommon", note: "Claims to be a captain. The helmet is a yogurt lid." },
   { id: "square", name: "Square Dad", rarity: "uncommon", note: "Says he is a rectangle, actually, then laughs too long." },
-  { id: "honk", name: "The Honk", rarity: "rare", note: "Honks in Morse code. Nobody has translated one." },
-  { id: "dave", name: "Orbit Dave", rarity: "rare", note: "His head is a tiny planet. The moon is a freeloader." },
-  { id: "glitter", name: "Glitter Goblin", rarity: "legendary", note: "Leaves sparkles in the airlock and denies everything." },
-  { id: "gloop", name: "Empress Gloop", rarity: "legendary", note: "Rules a damp moon. The crown keeps sliding off." },
-  { id: "pip", name: "Pip", rarity: "common", note: "A triangle who insists triangles are the friendly shape." },
-  { id: "moth", name: "Marge the Moth", rarity: "common", note: "Flew into a station porch light and never left." },
+  { id: "honk", name: "The Honk", rarity: "uncommon", note: "Honks in Morse code. Nobody has translated one." },
+  { id: "dave", name: "Orbit Dave", rarity: "uncommon", note: "His head is a tiny planet. The moon is a freeloader." },
+  { id: "glitter", name: "Glitter Goblin", rarity: "uncommon", note: "Leaves sparkles in the airlock and denies everything." },
+  { id: "gloop", name: "Empress Gloop", rarity: "uncommon", note: "Rules a damp moon. The crown keeps sliding off." },
+  { id: "pip", name: "Pip", rarity: "uncommon", note: "A triangle who insists triangles are the friendly shape." },
+  { id: "moth", name: "Marge the Moth", rarity: "uncommon", note: "Flew into a station porch light and never left." },
   { id: "beak", name: "Professor Beak", rarity: "uncommon", note: "The lecture slides are just the word HONK." },
   { id: "sock", name: "Sock Steve", rarity: "uncommon", note: "Steve is a sock. Steve has dreams." },
-  { id: "croissant", name: "Count Croissant", rarity: "rare", note: "A pastry count. The crumbs are a navigation hazard." },
-  { id: "lantern", name: "Lady Lantern", rarity: "rare", note: "Lights the way, then asks if you brought snacks." },
-  { id: "shedeur", name: "Shedeur", rarity: "rare", note: "Browns No. 2, an AP on the wrist, and a smile wider than the end zone." },
+  { id: "croissant", name: "Count Croissant", rarity: "uncommon", note: "A pastry count. The crumbs are a navigation hazard." },
+  { id: "lantern", name: "Lady Lantern", rarity: "uncommon", note: "Lights the way, then asks if you brought snacks." },
+  { id: "shedeur", name: "Shedeur", rarity: "legendary", note: "Browns No. 2, an AP on the wrist, and a smile wider than the end zone." },
   { id: "kevin", name: "Kevin", rarity: "rare", note: "Two eyes, blue overalls, and a grin that survives reentry." },
   { id: "chewie", name: "Chewbacca", rarity: "rare", note: "A tall walk of brown fur and a bandolier. The roar is a full sentence." },
   { id: "grogu", name: "Grogu", rarity: "rare", note: "Green ears, a brown robe, and a very serious snack policy." },
   { id: "rocket", name: "Rocket", rarity: "rare", note: "A small raccoon in an orange flight suit. The attitude is extra." },
   { id: "groot", name: "Groot", rarity: "rare", note: "A sapling with a three-word vocabulary and excellent posture." },
-  { id: "wobble", name: "King Wobble", rarity: "legendary", note: "Three blobs in a trench coat, and a crown." },
-  { id: "quiet", name: "The Quiet Comet", rarity: "legendary", note: "Says nothing. The silence is very loud." },
-  { id: "ruler", name: "Supreme Ruler Biscotti", rarity: "supreme", note: "A black Lab in a gold crown and a pink cape. The court is now in session." },
+  { id: "wobble", name: "King Wobble", rarity: "uncommon", note: "Three blobs in a trench coat, and a crown." },
+  { id: "quiet", name: "The Quiet Comet", rarity: "uncommon", note: "Says nothing. The silence is very loud." },
+  { id: "ruler", name: "Supreme Ruler Biscotti", rarity: "legendary", note: "A black Lab in a gold crown and a pink cape. The court is now in session." },
 ];
 
 const SHIPS = [
-  { id: "dart", name: "Dart", rarity: "common", note: "The first ship. Pointy, proud, slightly used." },
-  { id: "saucer", name: "Saucer Scout", rarity: "common", note: "A rental saucer with one cup holder." },
+  { id: "dart", name: "Dart", rarity: "uncommon", note: "The first ship. Pointy, proud, slightly used." },
+  { id: "saucer", name: "Saucer Scout", rarity: "uncommon", note: "A rental saucer with one cup holder." },
   { id: "pencil", name: "Pencil Rocket", rarity: "uncommon", note: "Writes its name on the sky. The eraser still works." },
   { id: "teapot", name: "Teapot", rarity: "uncommon", note: "Short trips only. The spout whistles at light speed." },
-  { id: "fish", name: "Fish Ship", rarity: "rare", note: "Swims through vacuum out of sheer confidence." },
-  { id: "boot", name: "Boot", rarity: "rare", note: "Left behind by a giant. Surprisingly aerodynamic." },
-  { id: "crown", name: "Crown Cruiser", rarity: "legendary", note: "Every window has a tiny curtain." },
-  { id: "potato", name: "Comet Potato", rarity: "legendary", note: "It is a potato. It is also, somehow, very fast." },
-  { id: "plane", name: "Paper Plane", rarity: "common", note: "Folded during a boring briefing. It escaped." },
-  { id: "thimble", name: "Thimble", rarity: "common", note: "Sews through asteroid fields. Very brave for its size." },
+  { id: "fish", name: "Fish Ship", rarity: "uncommon", note: "Swims through vacuum out of sheer confidence." },
+  { id: "boot", name: "Boot", rarity: "uncommon", note: "Left behind by a giant. Surprisingly aerodynamic." },
+  { id: "crown", name: "Crown Cruiser", rarity: "uncommon", note: "Every window has a tiny curtain." },
+  { id: "potato", name: "Comet Potato", rarity: "uncommon", note: "It is a potato. It is also, somehow, very fast." },
+  { id: "plane", name: "Paper Plane", rarity: "uncommon", note: "Folded during a boring briefing. It escaped." },
+  { id: "thimble", name: "Thimble", rarity: "uncommon", note: "Sews through asteroid fields. Very brave for its size." },
   { id: "accordion", name: "Accordion", rarity: "uncommon", note: "Every note is also a course correction." },
   { id: "porch", name: "Porch Light", rarity: "uncommon", note: "A porch light with ambitions and a little door." },
-  { id: "sub", name: "Vacuum Sub", rarity: "rare", note: "Still checks for water. There is no water." },
-  { id: "hat", name: "Top Hat", rarity: "rare", note: "Tips itself when it passes a planet." },
-  { id: "biscotti", name: "Biscotti", rarity: "rare", note: "A purple brontosaurus with a green belly. The neck is the antenna." },
+  { id: "sub", name: "Vacuum Sub", rarity: "uncommon", note: "Still checks for water. There is no water." },
+  { id: "hat", name: "Top Hat", rarity: "uncommon", note: "Tips itself when it passes a planet." },
+  { id: "biscotti", name: "Biscotti", rarity: "legendary", note: "A purple brontosaurus with a green belly. The neck is the antenna." },
   { id: "gru", name: "Gru's Ship", rarity: "rare", note: "A tall silver rocket with a red stripe. The fins mean business." },
-  { id: "falcon", name: "Millennium Falcon", rarity: "rare", note: "A round freighter with a side cockpit and two front mandibles." },
+  { id: "falcon", name: "Millennium Falcon", rarity: "legendary", note: "A round freighter with a side cockpit and two front mandibles." },
   { id: "iron", name: "Iron Suit", rarity: "rare", note: "Red and gold, flying without a ship. The chest light is the engine." },
-  { id: "whale", name: "Choir Whale", rarity: "legendary", note: "Sings directions. The chorus lasts four hours." },
-  { id: "disco", name: "Disco Ball", rarity: "legendary", note: "The dance floor is the engine. Please hold on." },
-  { id: "throne", name: "Iron Throne", rarity: "supreme", note: "A chair of melted swords. It flies, somehow, and everyone stands up." },
+  { id: "whale", name: "Choir Whale", rarity: "uncommon", note: "Sings directions. The chorus lasts four hours." },
+  { id: "disco", name: "Disco Ball", rarity: "uncommon", note: "The dance floor is the engine. Please hold on." },
+  { id: "throne", name: "Iron Throne", rarity: "legendary", note: "A chair of melted swords. It flies, somehow, and everyone stands up." },
 ];
 
 const RARITY_WEIGHT = [
-  ["common", 55],
-  ["uncommon", 28],
-  ["rare", 13],
-  ["legendary", 3],
-  ["supreme", 1],
+  ["uncommon", 78],
+  ["rare", 18],
+  ["legendary", 4],
 ];
 
 function normalizeStats() {
@@ -706,7 +704,7 @@ function findById(list, id) {
 }
 
 function weightedPick(pool) {
-  const weights = { common: 10, uncommon: 5, rare: 2, legendary: 1, supreme: 0.2 };
+  const weights = { uncommon: 8, rare: 2, legendary: 0.35 };
   const total = pool.reduce((sum, item) => sum + weights[item.rarity], 0);
   let roll = Math.random() * total;
   for (const item of pool) {
@@ -1021,13 +1019,17 @@ function paintPreview(canvas, painter) {
 function renderCards(container, items, ownedIds, selectedId, paint, onPick, lockedLabel, lockedNote) {
   container.replaceChildren();
   const accent = getComputedStyle(document.body).getPropertyValue("--accent").trim();
-  const ordered = [
-    ...items.filter((item) => item.rarity === "supreme"),
-    ...items.filter((item) => item.rarity !== "supreme"),
-  ];
+  const rarityRank = { legendary: 0, rare: 1, uncommon: 2 };
+  const ordered = [...items].sort((a, b) => {
+    const pinned = Number(isSupreme(b.id)) - Number(isSupreme(a.id));
+    if (pinned !== 0) {
+      return pinned;
+    }
+    return (rarityRank[a.rarity] ?? 9) - (rarityRank[b.rarity] ?? 9);
+  });
   for (const item of ordered) {
     const owned = ownedIds.includes(item.id);
-    const supreme = item.rarity === "supreme";
+    const supreme = isSupreme(item.id);
     const card = document.createElement(owned && onPick ? "button" : "article");
     if (owned && onPick) {
       card.type = "button";

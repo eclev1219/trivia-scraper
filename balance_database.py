@@ -94,6 +94,8 @@ def clean_label(value):
         return None
     if re.fullmatch(r"Q\d+", value):
         return None
+    if re.search(r"https?://|wikidata\.org|well-known/genid", value, re.I):
+        return None
     return value
 
 
@@ -434,20 +436,6 @@ JOBS = [
         """,
         lambda subject: f"Which company built the {subject}?",
         lambda links: "medium" if links >= 20 else "hard",
-    ),
-    (
-        "athletes",
-        "Sports",
-        """
-        SELECT ?itemLabel ?answerLabel ?links WHERE {
-          ?item wdt:P106 wd:Q2066131; wdt:P641 ?answer; wikibase:sitelinks ?links.
-          FILTER(?links > 12)
-          SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
-        }
-        LIMIT 2500
-        """,
-        lambda subject: f"Which sport is {subject} known for?",
-        by_links,
     ),
     (
         "stadiums",

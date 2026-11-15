@@ -48,6 +48,8 @@ def clean_label(value):
         return None
     if re.fullmatch(r"Q\d+", value):
         return None
+    if re.search(r"https?://|wikidata\.org|well-known/genid", value, re.I):
+        return None
     return value
 
 
