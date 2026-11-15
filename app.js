@@ -999,13 +999,16 @@ function noiseBuffer() {
   return buffer;
 }
 
-function playTone(note, time, duration, wave, volume) {
+function playTone(note, time, duration, wave, volume, slide) {
   const oscillator = audioContext.createOscillator();
   const gain = audioContext.createGain();
-  const attack = Math.min(0.05, duration * 0.25);
+  const attack = Math.min(0.03, duration * 0.2);
   const release = Math.min(0.22, duration * 0.4);
   oscillator.type = wave;
-  oscillator.frequency.value = midi(note);
+  oscillator.frequency.setValueAtTime(midi(note), time);
+  if (slide) {
+    oscillator.frequency.exponentialRampToValueAtTime(Math.max(20, midi(note + slide)), time + duration * 0.8);
+  }
   gain.gain.setValueAtTime(0.0001, time);
   gain.gain.exponentialRampToValueAtTime(volume, time + attack);
   gain.gain.setValueAtTime(volume, time + Math.max(attack, duration - release));
@@ -1046,7 +1049,7 @@ function scheduleLoop(source, loopSeconds, generation) {
     if (event.noise) {
       playNoise(start + event.time, event.duration, event.frequency, event.volume);
     } else {
-      playTone(event.note, start + event.time, event.duration, event.wave, event.volume);
+      playTone(event.note, start + event.time, event.duration, event.wave, event.volume, event.slide || 0);
     }
   }
   window.setTimeout(() => scheduleLoop(source, loopSeconds, generation), loopSeconds * 1000);
@@ -1233,6 +1236,64 @@ function bossaTune() {
   return { events, loopSeconds: 8 };
 }
 
+function trapTune() {
+  // Original half-time beat: sliding 808s, hat rolls, and a short minor loop.
+  const step = 0.1;
+  const events = [];
+  const kicks = [0, 6, 10, 16, 22, 26, 32, 38, 42, 48, 54, 58];
+  const bass = [29, 24, 32, 29, 27, 24, 29, 36, 32, 29, 27, 24];
+  kicks.forEach((hit, index) => {
+    events.push({
+      note: bass[index],
+      time: hit * step,
+      duration: hit % 16 === 0 ? 0.55 : 0.28,
+      wave: "sine",
+      volume: 0.2,
+      slide: hit % 16 === 0 ? -2 : -7,
+    });
+    events.push({
+      note: bass[index] + 12,
+      time: hit * step,
+      duration: 0.06,
+      wave: "triangle",
+      volume: 0.05,
+    });
+  });
+  for (const snare of [8, 24, 40, 56]) {
+    events.push({ noise: true, time: snare * step, duration: 0.09, frequency: 1400, volume: 0.09 });
+    events.push({ noise: true, time: snare * step + 0.012, duration: 0.05, frequency: 3200, volume: 0.04 });
+  }
+  for (let hit = 0; hit < 64; hit += 1) {
+    const roll = hit % 16 >= 13;
+    events.push({
+      noise: true,
+      time: hit * step,
+      duration: roll ? 0.03 : 0.025,
+      frequency: hit % 2 === 0 ? 7200 : 5400,
+      volume: roll ? 0.045 : hit % 2 === 0 ? 0.028 : 0.014,
+    });
+    if (roll) {
+      events.push({
+        noise: true,
+        time: hit * step + step * 0.5,
+        duration: 0.02,
+        frequency: 8000,
+        volume: 0.03,
+      });
+    }
+  }
+  const melody = [
+    [0, 75], [0.2, 72], [0.4, 68], [0.8, 72], [1.2, 75], [1.4, 77],
+    [2.0, 72], [2.2, 68], [2.6, 65], [3.0, 68], [3.4, 72],
+    [4.0, 75], [4.2, 72], [4.6, 68], [5.0, 72], [5.4, 75], [5.8, 77],
+  ];
+  for (const [time, note] of melody) {
+    events.push({ note, time, duration: 0.18, wave: "square", volume: 0.045 });
+    events.push({ note: note + 12, time: time + 0.012, duration: 0.12, wave: "triangle", volume: 0.03 });
+  }
+  return { events, loopSeconds: 6.4 };
+}
+
 function nightTune() {
   const events = [];
   const chords = [
@@ -1271,6 +1332,7 @@ function startMusic(kind) {
     lofi: lofiTune,
     bossa: bossaTune,
     night: nightTune,
+    trap: trapTune,
   };
   if (kind === "rain") {
     musicMaster.gain.value = 0.9;
@@ -1279,7 +1341,7 @@ function startMusic(kind) {
     return;
   }
   if (tunes[kind]) {
-    musicMaster.gain.value = kind === "space" ? 0.8 : 0.85;
+    musicMaster.gain.value = kind === "space" || kind === "trap" ? 0.8 : 0.85;
     const tune = tunes[kind]();
     scheduleLoop(tune.events, tune.loopSeconds, musicGeneration);
     return;

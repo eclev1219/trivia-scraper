@@ -1,4 +1,4 @@
-const CACHE = "trivianaut-v21";
+const CACHE = "trivianaut-v22";
 const QUESTION_CACHE = "trivianaut-questions";
 const PROFILE_CACHE = "trivianaut-profile";
 const SHELL = [
