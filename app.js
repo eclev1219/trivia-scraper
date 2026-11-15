@@ -1675,6 +1675,15 @@ for (const button of document.querySelectorAll("[data-theme-choice]")) {
   });
 }
 
+const musicBox = document.querySelector("#music-choices");
+if (musicBox && !musicBox.querySelector("[data-music-choice='trap']")) {
+  const trapButton = document.createElement("button");
+  trapButton.type = "button";
+  trapButton.dataset.musicChoice = "trap";
+  trapButton.textContent = "Trap";
+  musicBox.append(trapButton);
+}
+
 for (const button of document.querySelectorAll("[data-music-choice]")) {
   button.addEventListener("click", () => {
     settings.music = button.dataset.musicChoice;
@@ -2757,7 +2766,17 @@ function drawFlight(now) {
 requestAnimationFrame(drawFlight);
 
 if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("sw.js").catch(() => {});
+  let reloading = false;
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (reloading) {
+      return;
+    }
+    reloading = true;
+    window.location.reload();
+  });
+  navigator.serviceWorker.register("sw.js", { updateViaCache: "none" })
+    .then((registration) => registration.update())
+    .catch(() => {});
 }
 
 fetch("questions.json")

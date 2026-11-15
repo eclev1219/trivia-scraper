@@ -1,4 +1,4 @@
-const CACHE = "trivianaut-v22";
+const CACHE = "trivianaut-v23";
 const QUESTION_CACHE = "trivianaut-questions";
 const PROFILE_CACHE = "trivianaut-profile";
 const SHELL = [
@@ -21,8 +21,15 @@ function isQuestions(url) {
   return url.pathname.endsWith("/questions.json") || url.pathname.endsWith("questions.json");
 }
 
+function freshFetch(request) {
+  if (request.mode === "navigate") {
+    return fetch(request.url, { cache: "no-store", credentials: "same-origin", redirect: "follow" });
+  }
+  return fetch(new Request(request, { cache: "no-store" }));
+}
+
 function fromNetwork(request, cacheName) {
-  return fetch(request).then((response) => {
+  return freshFetch(request).then((response) => {
     if (response.ok) {
       const copy = response.clone();
       caches.open(cacheName).then((cache) => cache.put(request, copy));
@@ -31,10 +38,18 @@ function fromNetwork(request, cacheName) {
   }).catch(() => caches.match(request));
 }
 
+async function storeFresh(cache, path) {
+  const response = await fetch(path, { cache: "no-store" });
+  if (!response.ok) {
+    throw new Error(path);
+  }
+  await cache.put(path, response);
+}
+
 self.addEventListener("install", (event) => {
   event.waitUntil((async () => {
     const shell = await caches.open(CACHE);
-    await shell.addAll(SHELL);
+    await Promise.all(SHELL.map((path) => storeFresh(shell, path)));
     const questions = await caches.open(QUESTION_CACHE);
     const already = await questions.match("./questions.json");
     if (!already) {
