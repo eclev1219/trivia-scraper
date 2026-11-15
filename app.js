@@ -1,5 +1,6 @@
 const STATS_KEY = "trivia-stats";
 const SETTINGS_KEY = "trivia-settings";
+const FLIGHT_KEY = "trivia-flight-speed";
 
 const DAILY_KEY = "trivia-daily";
 const DAILY_DUST = 5;
@@ -89,24 +90,31 @@ const RARITY_WEIGHT = [
   ["legendary", 4],
 ];
 
-if (!Array.isArray(stats.aliens)) {
-  stats.aliens = [];
+function normalizeStats() {
+  if (!Array.isArray(stats.aliens)) {
+    stats.aliens = [];
+  }
+  if (!Array.isArray(stats.ships) || stats.ships.length === 0) {
+    stats.ships = ["dart"];
+  }
+  if (!stats.ships.includes("dart")) {
+    stats.ships.unshift("dart");
+  }
+  if (!stats.ship || !stats.ships.includes(stats.ship)) {
+    stats.ship = "dart";
+  }
+  if (typeof stats.rider !== "string" || !stats.aliens.includes(stats.rider)) {
+    stats.rider = "";
+  }
+  if (!Number.isFinite(stats.dust)) {
+    stats.dust = 0;
+  }
+  if (!stats.categories || typeof stats.categories !== "object") {
+    stats.categories = {};
+  }
 }
-if (!Array.isArray(stats.ships) || stats.ships.length === 0) {
-  stats.ships = ["dart"];
-}
-if (!stats.ships.includes("dart")) {
-  stats.ships.unshift("dart");
-}
-if (!stats.ship || !stats.ships.includes(stats.ship)) {
-  stats.ship = "dart";
-}
-if (typeof stats.rider !== "string" || !stats.aliens.includes(stats.rider)) {
-  stats.rider = "";
-}
-if (!Number.isFinite(stats.dust)) {
-  stats.dust = 0;
-}
+
+normalizeStats();
 
 let settings = loadJson(SETTINGS_KEY, {
   theme: "ink",
@@ -129,15 +137,208 @@ let musicNoise = null;
 let musicGeneration = 0;
 
 function loadJson(key, fallback) {
-  const saved = localStorage.getItem(key);
-  if (!saved) {
+  try {
+    const saved = localStorage.getItem(key);
+    if (!saved) {
+      return fallback;
+    }
+    return { ...fallback, ...JSON.parse(saved) };
+  } catch {
     return fallback;
   }
-  return { ...fallback, ...JSON.parse(saved) };
+}
+
+const SAVE_DB = "trivianaut-save";
+const SAVE_STORE = "kv";
+let saveDbPromise = null;
+
+function openSaveDb() {
+  if (saveDbPromise) {
+    return saveDbPromise;
+  }
+  saveDbPromise = new Promise((resolve, reject) => {
+    if (!("indexedDB" in window)) {
+      reject(new Error("indexedDB unavailable"));
+      return;
+    }
+    const request = indexedDB.open(SAVE_DB, 1);
+    request.onupgradeneeded = () => {
+      if (!request.result.objectStoreNames.contains(SAVE_STORE)) {
+        request.result.createObjectStore(SAVE_STORE);
+      }
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  }).catch((error) => {
+    saveDbPromise = null;
+    throw error;
+  });
+  return saveDbPromise;
+}
+
+function idbGet(key) {
+  return openSaveDb().then((db) => new Promise((resolve, reject) => {
+    const request = db.transaction(SAVE_STORE, "readonly").objectStore(SAVE_STORE).get(key);
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  }));
+}
+
+function idbSet(key, value) {
+  return openSaveDb().then((db) => new Promise((resolve, reject) => {
+    const tx = db.transaction(SAVE_STORE, "readwrite");
+    tx.objectStore(SAVE_STORE).put(value, key);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  }));
+}
+
+const PROFILE_CACHE = "trivianaut-profile";
+
+function profileRequest(key) {
+  return new Request(`./save/${key}`);
+}
+
+function cacheSave(key, record) {
+  if (!("caches" in window)) {
+    return Promise.resolve();
+  }
+  return caches.open(PROFILE_CACHE).then((cache) => cache.put(
+    profileRequest(key),
+    new Response(JSON.stringify(record), { headers: { "Content-Type": "application/json" } }),
+  ));
+}
+
+function cacheLoad(key) {
+  if (!("caches" in window)) {
+    return Promise.resolve(null);
+  }
+  return caches.open(PROFILE_CACHE).then((cache) => cache.match(profileRequest(key))).then((response) => {
+    if (!response) {
+      return null;
+    }
+    return response.json();
+  }).catch(() => null);
 }
 
 function saveJson(key, value) {
-  localStorage.setItem(key, JSON.stringify(value));
+  const record = { ...value, savedAt: Date.now() };
+  try {
+    localStorage.setItem(key, JSON.stringify(record));
+  } catch {
+    // The phone can refuse localStorage when storage is full. The other copies still get the save.
+  }
+  idbSet(key, record).catch(() => {});
+  cacheSave(key, record).catch(() => {});
+}
+
+function readDaily() {
+  try {
+    return JSON.parse(localStorage.getItem(DAILY_KEY) || "null");
+  } catch {
+    return null;
+  }
+}
+
+function progressScore(record) {
+  if (!record || typeof record !== "object") {
+    return -1;
+  }
+  const ships = Array.isArray(record.ships) ? record.ships.length : 0;
+  const aliens = Array.isArray(record.aliens) ? record.aliens.length : 0;
+  return (Number(record.answered) || 0) * 1000
+    + (Number(record.dust) || 0)
+    + (Number(record.longestStreak) || 0)
+    + ships * 50
+    + aliens * 50;
+}
+
+function restoreSaves() {
+  if (navigator.storage && navigator.storage.persist) {
+    navigator.storage.persist().catch(() => {});
+  }
+  return Promise.all([
+    idbGet(STATS_KEY).catch(() => null),
+    cacheLoad(STATS_KEY),
+    idbGet(SETTINGS_KEY).catch(() => null),
+    cacheLoad(SETTINGS_KEY),
+    idbGet(DAILY_KEY).catch(() => null),
+    cacheLoad(DAILY_KEY),
+    idbGet(FLIGHT_KEY).catch(() => null),
+    cacheLoad(FLIGHT_KEY),
+  ]).then(([idbStats, cachedStats, idbSettings, cachedSettings, idbDaily, cachedDaily, idbFlight, cachedFlight]) => {
+    const savedStats = progressScore(cachedStats) > progressScore(idbStats) ? cachedStats : idbStats;
+    const savedSettings = (cachedSettings && (Number(cachedSettings.savedAt) || 0) > (idbSettings ? Number(idbSettings.savedAt) || 0 : 0))
+      ? cachedSettings
+      : idbSettings;
+    const savedDaily = (cachedDaily && cachedDaily.date && !(idbDaily && idbDaily.date)) ? cachedDaily : (idbDaily || cachedDaily);
+    const savedFlight = idbFlight || cachedFlight;
+    const localScore = progressScore(stats);
+    const savedScore = progressScore(savedStats);
+    if (savedScore > localScore) {
+      Object.assign(stats, savedStats);
+      normalizeStats();
+      try {
+        localStorage.setItem(STATS_KEY, JSON.stringify(stats));
+      } catch {
+        // Keep the other copies if the phone will not accept localStorage.
+      }
+      noteCheckpoint(stats.currentStreak);
+    }
+    idbSet(STATS_KEY, { ...stats, savedAt: stats.savedAt || Date.now() }).catch(() => {});
+    cacheSave(STATS_KEY, { ...stats, savedAt: stats.savedAt || Date.now() }).catch(() => {});
+
+    const localSettingsAt = Number(settings.savedAt) || 0;
+    const savedSettingsAt = savedSettings ? Number(savedSettings.savedAt) || 0 : 0;
+    if (savedSettings && savedSettingsAt > localSettingsAt) {
+      settings.theme = savedSettings.theme || settings.theme;
+      settings.music = savedSettings.music || settings.music;
+      settings.savedAt = savedSettingsAt;
+      try {
+        localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+      } catch {
+        // The backup copies still have the theme and music.
+      }
+      applyTheme(settings.theme);
+    }
+    const settingsRecord = { ...settings, savedAt: settings.savedAt || Date.now() };
+    idbSet(SETTINGS_KEY, settingsRecord).catch(() => {});
+    cacheSave(SETTINGS_KEY, settingsRecord).catch(() => {});
+    for (const button of document.querySelectorAll("[data-music-choice]")) {
+      button.classList.toggle("selected", button.dataset.musicChoice === settings.music);
+    }
+
+    let localDaily = readDaily();
+    if (savedDaily && savedDaily.date && !(localDaily && localDaily.date)) {
+      localDaily = savedDaily;
+      try {
+        localStorage.setItem(DAILY_KEY, JSON.stringify(savedDaily));
+      } catch {
+        // The backup copies still know today's challenge is done.
+      }
+    }
+    if (localDaily && localDaily.date) {
+      const dailyRecord = { ...localDaily, savedAt: localDaily.savedAt || Date.now() };
+      idbSet(DAILY_KEY, dailyRecord).catch(() => {});
+      cacheSave(DAILY_KEY, dailyRecord).catch(() => {});
+    }
+
+    const savedSpeed = savedFlight && Number(savedFlight.value);
+    if ((!Number.isFinite(flightSpeed) || flightSpeed <= 1) && Number.isFinite(savedSpeed) && savedSpeed > 1) {
+      flightSpeed = savedSpeed;
+      try {
+        localStorage.setItem(FLIGHT_KEY, String(flightSpeed));
+      } catch {
+        // Speed is also stored with the other backups.
+      }
+    }
+    if (Number.isFinite(flightSpeed) && flightSpeed > 0) {
+      const speedRecord = { value: flightSpeed, savedAt: Date.now() };
+      idbSet(FLIGHT_KEY, speedRecord).catch(() => {});
+      cacheSave(FLIGHT_KEY, speedRecord).catch(() => {});
+    }
+    showDust();
+  }).catch(() => {});
 }
 
 let currentScreen = "home";
@@ -466,7 +667,7 @@ function showDust() {
   document.querySelector("#dust-shop").textContent = label;
   const button = document.querySelector("#buy-box");
   button.disabled = stats.dust < BOX_COST;
-  const savedDaily = JSON.parse(localStorage.getItem(DAILY_KEY) || "null");
+  const savedDaily = readDaily();
   const dailyButton = document.querySelector("#open-daily");
   dailyButton.textContent = savedDaily && savedDaily.date === dailyDate() && savedDaily.done
     ? "Daily challenge · done"
@@ -1320,7 +1521,7 @@ function moveDaily(index, direction) {
 
 function openDaily() {
   const date = dailyDate();
-  const saved = JSON.parse(localStorage.getItem(DAILY_KEY) || "null");
+  const saved = readDaily();
   dailyPlay = buildDaily(date);
   if (saved && saved.date === date && saved.done) {
     const byId = new Map(dailyPlay.answer.map((item) => [item.id, item]));
@@ -1341,12 +1542,12 @@ function submitDaily() {
   dailyPlay.earned = correct * DAILY_DUST;
   stats.dust += dailyPlay.earned;
   saveJson(STATS_KEY, stats);
-  localStorage.setItem(DAILY_KEY, JSON.stringify({
+  saveJson(DAILY_KEY, {
     date: dailyPlay.date,
     done: true,
     earned: dailyPlay.earned,
     order: dailyPlay.order.map((item) => item.id),
-  }));
+  });
   renderDaily();
   showDust();
 }
@@ -1420,16 +1621,31 @@ for (const button of document.querySelectorAll("[data-music-choice]")) {
   });
 }
 
+function refreshMusicChoice() {
+  for (const button of document.querySelectorAll("[data-music-choice]")) {
+    button.classList.toggle("selected", button.dataset.musicChoice === settings.music);
+  }
+}
+
 applyTheme(settings.theme);
 showDust();
 startMusic("off");
-for (const button of document.querySelectorAll("[data-music-choice]")) {
-  button.classList.toggle("selected", button.dataset.musicChoice === settings.music);
-}
+refreshMusicChoice();
 
 const flightCanvas = document.querySelector("#flight");
 const flightCtx = flightCanvas.getContext("2d");
-let flightSpeed = Number(localStorage.getItem("trivia-flight-speed"));
+const insetProbe = document.createElement("div");
+insetProbe.style.cssText = "position:fixed;visibility:hidden;pointer-events:none;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)";
+document.body.append(insetProbe);
+
+function safeInsets() {
+  const style = getComputedStyle(insetProbe);
+  return {
+    top: parseFloat(style.paddingTop) || 0,
+    right: parseFloat(style.paddingRight) || 0,
+  };
+}
+let flightSpeed = Number(localStorage.getItem(FLIGHT_KEY));
 if (!Number.isFinite(flightSpeed) || flightSpeed <= 0) {
   flightSpeed = 1;
 }
@@ -1440,8 +1656,17 @@ function changeFlightSpeed(correct) {
   } else {
     flightSpeed = 1;
   }
-  localStorage.setItem("trivia-flight-speed", String(flightSpeed));
+  try {
+    localStorage.setItem(FLIGHT_KEY, String(flightSpeed));
+  } catch {
+    // IndexedDB keeps the speed if localStorage is full.
+  }
+  const speedRecord = { value: flightSpeed, savedAt: Date.now() };
+  idbSet(FLIGHT_KEY, speedRecord).catch(() => {});
+  cacheSave(FLIGHT_KEY, speedRecord).catch(() => {});
 }
+
+restoreSaves();
 
 function makeComet(anywhere) {
   const width = flightCanvas.clientWidth || window.innerWidth;
@@ -1469,7 +1694,7 @@ function launchUfoVisit(width, height) {
   for (let index = 0; index < 2; index += 1) {
     ufos.push({
       x: (fromLeft ? -110 : width + 110) - direction * index * 120,
-      y: 64 + Math.random() * Math.max(50, height * 0.42),
+      y: Math.max(120, height * 0.22) + Math.random() * Math.max(50, height * 0.36),
       speed: direction * (62 + Math.random() * 28),
       wobble: Math.random() * Math.PI * 2,
     });
@@ -1532,7 +1757,7 @@ function noteCheckpoint(streak) {
   activeCheckpoint = {
     name: CHECKPOINTS[level - 1],
     x: (flightCanvas.clientWidth || window.innerWidth) + 80,
-    y: 92,
+    y: Math.max(160, (flightCanvas.clientHeight || window.innerHeight) * 0.22),
   };
 }
 
@@ -1547,10 +1772,10 @@ function fillCircle(x, y, radius, color) {
   flightCtx.fill();
 }
 
-function drawCheckpointGraphic(name, x, y) {
+function drawCheckpointGraphic(name, x, y, scale) {
   flightCtx.save();
   flightCtx.translate(x, y);
-  flightCtx.scale(2.45, 2.45);
+  flightCtx.scale(scale, scale);
   flightCtx.translate(-x, -y);
   if (name === "Mars") {
     fillCircle(x, y, 14, "#c4553a");
@@ -2291,7 +2516,7 @@ function spawnGuest(alienId) {
   guests.push({
     id: alienId,
     x: -50,
-    y: 90 + Math.random() * Math.max(40, (flightCanvas.clientHeight || 400) * 0.35),
+    y: Math.max(150, (flightCanvas.clientHeight || 400) * 0.28) + Math.random() * Math.max(40, (flightCanvas.clientHeight || 400) * 0.28),
     speed: 78,
     wobble: Math.random() * Math.PI * 2,
   });
@@ -2347,9 +2572,10 @@ function paintRider(ctx) {
   ctx.restore();
 }
 
-function drawRocket(x, y, color) {
+function drawRocket(x, y, color, scale) {
   flightCtx.save();
   flightCtx.translate(x, y);
+  flightCtx.scale(scale, scale);
   paintShip(flightCtx, stats.ship || "dart", color);
   paintRider(flightCtx);
   paintAstronaut(flightCtx);
@@ -2370,6 +2596,10 @@ function drawFlight(now) {
   }
   flightCtx.setTransform(ratio, 0, 0, ratio, 0, 0);
   flightCtx.clearRect(0, 0, width, height);
+  const insets = safeInsets();
+  const compact = width < 740;
+  const checkpointScale = width < 430 ? 1.45 : compact ? 1.7 : 2.45;
+  const edge = Math.max(compact ? 20 : 16, insets.right + 14);
 
   const styles = getComputedStyle(document.body);
   const accent = styles.getPropertyValue("--accent").trim();
@@ -2416,7 +2646,7 @@ function drawFlight(now) {
     const bob = Math.sin(flightClock * 3 + guest.wobble) * 6;
     flightCtx.save();
     flightCtx.translate(guest.x, guest.y + bob);
-    flightCtx.scale(1.8, 1.8);
+    flightCtx.scale(compact ? 1.2 : 1.8, compact ? 1.2 : 1.8);
     paintAlien(flightCtx, guest.id);
     flightCtx.restore();
     if (guest.x > width + 80) {
@@ -2426,29 +2656,36 @@ function drawFlight(now) {
 
   if (activeCheckpoint) {
     const wide = activeCheckpoint.name === "Constellation";
-    const dockX = width - (wide ? 156 : 84);
-    const dockY = 92;
+    const reach = (wide ? 48 : activeCheckpoint.name === "Saturn" ? 24 : 18) * checkpointScale;
+    const dockX = width - edge - reach;
+    const dockY = Math.max(insets.top + reach + (compact ? 28 : 20), compact ? 148 : 92);
     const glide = Math.min(1, dt * 1.4);
     activeCheckpoint.x += (dockX - activeCheckpoint.x) * glide;
     activeCheckpoint.y += (dockY - activeCheckpoint.y) * glide;
     if (currentScreen === "trivia") {
       flightCtx.globalAlpha = 0.95;
-      drawCheckpointGraphic(activeCheckpoint.name, activeCheckpoint.x, activeCheckpoint.y);
+      drawCheckpointGraphic(activeCheckpoint.name, activeCheckpoint.x, activeCheckpoint.y, checkpointScale);
     }
   }
 
-  const rocketX = width * 0.28 + Math.sin(flightClock * 0.65) * width * 0.24;
-  const rocketY = height * 0.48 + Math.sin(flightClock * 1.05) * height * 0.3;
-  drawRocket(rocketX, rocketY, accent);
+  const rocketScale = compact ? 0.78 : 1;
+  const rocketX = width * (compact ? 0.34 : 0.28) + Math.sin(flightClock * 0.65) * width * (compact ? 0.16 : 0.24);
+  let rocketY = (compact ? height * 0.58 : height * 0.48) + Math.sin(flightClock * 1.05) * height * (compact ? 0.14 : 0.3);
+  if (compact) {
+    rocketY = Math.max(insets.top + 168, Math.min(height - 96, rocketY));
+  }
+  drawRocket(rocketX, rocketY, accent, rocketScale);
 
   const tracker = checkpointName(stats.currentStreak);
-  if (currentScreen === "trivia" && tracker !== "—") {
+  if (currentScreen === "trivia" && tracker !== "—" && activeCheckpoint) {
+    const reach = (tracker === "Constellation" ? 48 : tracker === "Saturn" ? 24 : 18) * checkpointScale;
+    const labelY = Math.max(insets.top + 8, activeCheckpoint.y - reach - 8);
     flightCtx.globalAlpha = 0.9;
     flightCtx.fillStyle = text;
-    flightCtx.font = "700 15px Fredoka, sans-serif";
+    flightCtx.font = `700 ${compact ? 13 : 15}px Fredoka, sans-serif`;
     flightCtx.textAlign = "right";
     flightCtx.textBaseline = "top";
-    flightCtx.fillText(tracker, width - 16, 6);
+    flightCtx.fillText(tracker, width - edge, labelY);
   }
   flightCtx.globalAlpha = 1;
 

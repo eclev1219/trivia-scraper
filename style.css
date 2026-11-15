@@ -571,7 +571,13 @@ button.selected {
   }
 
   #question-text {
-    padding-right: 5.25rem;
+    padding-right: 5.75rem;
+    font-size: 1.28rem;
+  }
+
+  #trivia .text-button,
+  #daily .text-button {
+    padding-bottom: 0.65rem;
   }
 
   button {
