@@ -1,4 +1,4 @@
-const CACHE = "trivianaut-v17";
+const CACHE = "trivianaut-v18";
 const FILES = [
   "./",
   "./index.html",

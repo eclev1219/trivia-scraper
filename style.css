@@ -542,6 +542,19 @@ button.selected {
     min-height: calc(100dvh - max(1.5rem, env(safe-area-inset-top)) - max(3rem, env(safe-area-inset-bottom)));
   }
 
+  .home-layout::before {
+    content: "";
+    flex: 0.7 1 0;
+  }
+
+  .home-credits {
+    margin-top: 0;
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+  }
+
   #home h1 {
     margin-bottom: 0.45rem;
     font-size: clamp(2.7rem, 12vw, 3.4rem);
