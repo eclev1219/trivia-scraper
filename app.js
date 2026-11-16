@@ -717,7 +717,7 @@ function weightedPick(pool) {
 }
 
 function discoverAlien(difficulty) {
-  const chance = difficulty === "hard" ? 0.22 : difficulty === "medium" ? 0.08 : 0;
+  const chance = difficulty === "hard" ? 0.06 : difficulty === "medium" ? 0.02 : 0;
   if (Math.random() >= chance) {
     return null;
   }
