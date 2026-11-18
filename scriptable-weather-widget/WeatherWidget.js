@@ -248,7 +248,8 @@ function usAqiColor(aqi) {
 
 function buildWidget(weather, place) {
   const w = new ListWidget()
-  w.setPadding(14, 16, 14, 16)
+  // Tight padding so a medium Scriptable widget doesn't clip
+  w.setPadding(10, 12, 10, 12)
   const bg = new LinearGradient()
   bg.locations = [0, 1]
   if (weather.isDayTime) {
@@ -264,124 +265,139 @@ function buildWidget(weather, place) {
   header.centerAlignContent()
 
   const title = header.addText(place.name)
-  title.font = Font.semiboldSystemFont(13)
+  title.font = Font.semiboldSystemFont(12)
   title.textColor = Color.white()
   title.lineLimit = 1
+  title.minimumScaleFactor = 0.8
 
   header.addSpacer()
 
   const cond = header.addText(weather.weatherText)
-  cond.font = Font.systemFont(12)
+  cond.font = Font.systemFont(11)
   cond.textColor = new Color("#FFFFFF", 0.85)
   cond.lineLimit = 1
+  cond.minimumScaleFactor = 0.8
 
-  w.addSpacer(8)
+  w.addSpacer(4)
 
   const row = w.addStack()
   row.layoutHorizontally()
-  row.bottomAlignContent()
+  row.centerAlignContent()
 
   const tempStack = row.addStack()
   tempStack.layoutVertically()
+  tempStack.spacing = 0
   const temp = tempStack.addText(`${Math.round(weather.temperature)}°${weather.unit}`)
-  temp.font = Font.boldSystemFont(42)
+  temp.font = Font.boldSystemFont(34)
   temp.textColor = Color.white()
+  temp.lineLimit = 1
 
   if (weather.realFeel != null) {
     const rf = tempStack.addText(`Feels ${Math.round(weather.realFeel)}°`)
-    rf.font = Font.systemFont(11)
+    rf.font = Font.systemFont(10)
     rf.textColor = new Color("#FFFFFF", 0.75)
+    rf.lineLimit = 1
   }
 
   row.addSpacer()
 
   const metrics = row.addStack()
   metrics.layoutVertically()
-  metrics.spacing = 3
+  metrics.spacing = 2
+  metrics.centerAlignContent()
 
   addMetric(metrics, "Humidity", weather.humidity != null ? `${weather.humidity}%` : "—")
   if (weather.airQuality) {
+    // Shorter AQI label fits medium width better
+    const aqCat = shortAqiCategory(weather.airQuality.category)
     addMetric(
       metrics,
       "AQI",
-      `${weather.airQuality.index} ${weather.airQuality.category}`,
+      `${weather.airQuality.index} ${aqCat}`,
       weather.airQuality.color
     )
   } else {
-    addMetric(metrics, "AQI", "Unavailable")
+    addMetric(metrics, "AQI", "—")
   }
 
-  w.addSpacer(10)
+  w.addSpacer(6)
 
   const label = w.addText("Hourly rain / snow")
-  label.font = Font.semiboldSystemFont(11)
+  label.font = Font.semiboldSystemFont(10)
   label.textColor = new Color("#FFFFFF", 0.8)
+  label.lineLimit = 1
 
-  w.addSpacer(4)
+  w.addSpacer(2)
 
   const hours = w.addStack()
   hours.layoutHorizontally()
-  hours.spacing = 6
+  hours.spacing = 4
 
   for (const h of weather.hours) {
     const col = hours.addStack()
     col.layoutVertically()
     col.centerAlignContent()
-    col.size = new Size(42, 0)
+    col.spacing = 1
+    col.size = new Size(40, 0)
 
     const t = col.addText(formatHour(h.time))
-    t.font = Font.systemFont(10)
+    t.font = Font.systemFont(9)
     t.textColor = new Color("#FFFFFF", 0.8)
     t.centerAlignText()
-
-    col.addSpacer(2)
+    t.lineLimit = 1
 
     const kind = precipKind(h)
     try {
       const sym = SFSymbol.named(kind.symbol)
-      sym.applyFont(Font.systemFont(12))
+      sym.applyFont(Font.systemFont(11))
       const img = col.addImage(sym.image)
-      img.imageSize = new Size(14, 14)
+      img.imageSize = new Size(12, 12)
       img.tintColor = Color.white()
       img.centerAlignImage()
     } catch (_) {
       const icon = col.addText(kind.fallback)
-      icon.font = Font.systemFont(11)
+      icon.font = Font.systemFont(10)
       icon.textColor = Color.white()
       icon.centerAlignText()
     }
 
     const pct = col.addText(`${Math.round(kind.prob)}%`)
-    pct.font = Font.boldSystemFont(11)
+    pct.font = Font.boldSystemFont(10)
     pct.textColor = Color.white()
     pct.centerAlignText()
+    pct.lineLimit = 1
 
     if (h.temp != null) {
       const ht = col.addText(`${Math.round(h.temp)}°`)
-      ht.font = Font.systemFont(10)
+      ht.font = Font.systemFont(9)
       ht.textColor = new Color("#FFFFFF", 0.7)
       ht.centerAlignText()
+      ht.lineLimit = 1
     }
   }
 
-  w.addSpacer(6)
-  const foot = w.addText(cacheFooter(weather.fetchedAt))
-  foot.font = Font.systemFont(9)
-  foot.textColor = new Color("#FFFFFF", 0.45)
-
   return w
+}
+
+function shortAqiCategory(category) {
+  if (!category) return ""
+  if (category.startsWith("Unhealthy (Sensitive)")) return "Sensitive"
+  if (category === "Very Unhealthy") return "Very Bad"
+  return category
 }
 
 function addMetric(parent, label, value, accentHex) {
   const s = parent.addStack()
   s.layoutHorizontally()
   const l = s.addText(`${label}  `)
-  l.font = Font.systemFont(11)
+  l.font = Font.systemFont(10)
   l.textColor = new Color("#FFFFFF", 0.7)
+  l.lineLimit = 1
   const v = s.addText(value)
-  v.font = Font.semiboldSystemFont(12)
+  v.font = Font.semiboldSystemFont(11)
   v.textColor = accentHex ? new Color(accentHex) : Color.white()
   v.lineLimit = 1
+  v.minimumScaleFactor = 0.75
 }
 
 function precipKind(h) {
