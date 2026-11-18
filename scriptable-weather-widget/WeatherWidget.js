@@ -243,60 +243,309 @@ function usAqiColor(aqi) {
 }
 
 ////////////////////
+// CONDITION THEMES
+////////////////////
+
+function upcomingPrecip(weather) {
+  const hours = weather.hours || []
+  let maxRainProb = 0
+  let maxSnowProb = 0
+  let wetHour = null
+  for (const h of hours) {
+    const snowy =
+      (h.snow || 0) > (h.rain || 0) ||
+      [71, 73, 75, 77, 85, 86].includes(h.weatherCode)
+    const prob = h.precipProb || 0
+    if (snowy) maxSnowProb = Math.max(maxSnowProb, prob)
+    else maxRainProb = Math.max(maxRainProb, prob)
+    if (prob >= 40 && !wetHour) wetHour = h
+  }
+  return { maxRainProb, maxSnowProb, wetHour }
+}
+
+function moodFromWeather(weather) {
+  const code = weather.weatherCode
+  const day = weather.isDayTime
+  const upcoming = upcomingPrecip(weather)
+
+  // Current precipitation / storm codes win first
+  if ([95, 96, 99].includes(code)) return "thunder"
+  if ([71, 73, 75, 77, 85, 86].includes(code)) return day ? "snow" : "snowNight"
+  if ([65, 82].includes(code)) return "heavyRain"
+  if ([51, 53, 55, 56, 57, 61, 63, 66, 67, 80, 81].includes(code)) {
+    return day ? "rain" : "rainNight"
+  }
+  if ([45, 48].includes(code)) return "fog"
+  if (code === 3) return day ? "overcast" : "overcastNight"
+  if (code === 2) return day ? "partlyCloudy" : "partlyCloudyNight"
+
+  // Clear / mainly clear — still shift if rain/snow is projected soon
+  if (upcoming.maxSnowProb >= 45) return day ? "snowSoon" : "snowNight"
+  if (upcoming.maxRainProb >= 45) return day ? "rainSoon" : "rainNight"
+
+  if (code === 1) return day ? "mostlyClear" : "clearNight"
+  return day ? "clear" : "clearNight"
+}
+
+function themeForMood(mood) {
+  // Soft sky atmospheres — light themes use dark ink for readability
+  const themes = {
+    clear: {
+      colors: ["#3BA4E6", "#7EC8F0", "#B8DFF5"],
+      locations: [0, 0.55, 1],
+      text: "#0B2A44",
+      muted: "#1A4A6E",
+      soft: "#2C6288",
+      accent: "#F5C542",
+      icon: "sun.max.fill",
+      precipAccent: "#1B6CA8",
+      hint: null,
+    },
+    mostlyClear: {
+      colors: ["#4FA8DE", "#8FCBEA", "#D2EAF7"],
+      locations: [0, 0.55, 1],
+      text: "#0F2F4A",
+      muted: "#255879",
+      soft: "#3A6F90",
+      accent: "#E8B84A",
+      icon: "sun.max.fill",
+      precipAccent: "#1B6CA8",
+      hint: null,
+    },
+    clearNight: {
+      colors: ["#071325", "#13233D", "#1E3352"],
+      locations: [0, 0.5, 1],
+      text: "#F2F6FA",
+      muted: "#C5D2E0",
+      soft: "#9AAEBF",
+      accent: "#E6D5A4",
+      icon: "moon.stars.fill",
+      precipAccent: "#7EB6D9",
+      hint: null,
+    },
+    partlyCloudy: {
+      colors: ["#5E90B8", "#8FB0C8", "#C5D8E6"],
+      locations: [0, 0.5, 1],
+      text: "#14324A",
+      muted: "#2E5570",
+      soft: "#4A718A",
+      accent: "#D4A84B",
+      icon: "cloud.sun.fill",
+      precipAccent: "#2A6F9A",
+      hint: null,
+    },
+    partlyCloudyNight: {
+      colors: ["#121C2C", "#24364A", "#3A5166"],
+      locations: [0, 0.5, 1],
+      text: "#F0F4F8",
+      muted: "#C2CEDA",
+      soft: "#97A8B8",
+      accent: "#C9B896",
+      icon: "cloud.moon.fill",
+      precipAccent: "#7EB6D9",
+      hint: null,
+    },
+    overcast: {
+      colors: ["#6D7C89", "#8A98A4", "#AEB8C0"],
+      locations: [0, 0.5, 1],
+      text: "#1A242C",
+      muted: "#33414C",
+      soft: "#4C5C68",
+      accent: "#5F7D95",
+      icon: "cloud.fill",
+      precipAccent: "#3D5F78",
+      hint: null,
+    },
+    overcastNight: {
+      colors: ["#1A222A", "#2B3640", "#3E4B56"],
+      locations: [0, 0.5, 1],
+      text: "#EEF2F5",
+      muted: "#C0CAD2",
+      soft: "#96A3AD",
+      accent: "#8FA4B5",
+      icon: "cloud.fill",
+      precipAccent: "#7EB6D9",
+      hint: null,
+    },
+    fog: {
+      colors: ["#9AA4AB", "#B7BFC4", "#D5DBDF"],
+      locations: [0, 0.5, 1],
+      text: "#243037",
+      muted: "#3E4C54",
+      soft: "#5A6A73",
+      accent: "#6C7F8A",
+      icon: "cloud.fog.fill",
+      precipAccent: "#4A6573",
+      hint: null,
+    },
+    rainSoon: {
+      colors: ["#4A6F8C", "#6F90A8", "#A7BFC9"],
+      locations: [0, 0.45, 1],
+      text: "#122636",
+      muted: "#2A4A5E",
+      soft: "#456678",
+      accent: "#3E7EA6",
+      icon: "cloud.sun.rain.fill",
+      precipAccent: "#1F5F86",
+      hint: "Rain on the way",
+    },
+    rain: {
+      colors: ["#3A5266", "#5A7388", "#7F96A6"],
+      locations: [0, 0.5, 1],
+      text: "#F3F7FA",
+      muted: "#D0DCE5",
+      soft: "#A9BBC8",
+      accent: "#8EC5E8",
+      icon: "cloud.rain.fill",
+      precipAccent: "#B8E0F7",
+      hint: null,
+    },
+    rainNight: {
+      colors: ["#141C26", "#243140", "#35485A"],
+      locations: [0, 0.5, 1],
+      text: "#F0F5F9",
+      muted: "#C5D3DF",
+      soft: "#95A9BA",
+      accent: "#7EB8DC",
+      icon: "cloud.moon.rain.fill",
+      precipAccent: "#9FD0F0",
+      hint: null,
+    },
+    heavyRain: {
+      colors: ["#1B2733", "#2E4050", "#455A6B"],
+      locations: [0, 0.5, 1],
+      text: "#F4F8FB",
+      muted: "#D2DEE8",
+      soft: "#A7B8C6",
+      accent: "#8FCAF0",
+      icon: "cloud.heavyrain.fill",
+      precipAccent: "#B6E2FF",
+      hint: null,
+    },
+    thunder: {
+      colors: ["#171A22", "#2A3140", "#3F4858"],
+      locations: [0, 0.5, 1],
+      text: "#F5F6F8",
+      muted: "#D2D6DE",
+      soft: "#A7AEBA",
+      accent: "#F0D56A",
+      icon: "cloud.bolt.rain.fill",
+      precipAccent: "#F0D56A",
+      hint: null,
+    },
+    snow: {
+      colors: ["#A9C0D4", "#C9D8E6", "#E8EEF4"],
+      locations: [0, 0.5, 1],
+      text: "#1A2C3C",
+      muted: "#355066",
+      soft: "#567188",
+      accent: "#5B8FB5",
+      icon: "cloud.snow.fill",
+      precipAccent: "#3F6F94",
+      hint: null,
+    },
+    snowSoon: {
+      colors: ["#8FA9BE", "#B5C7D6", "#DCE5EC"],
+      locations: [0, 0.5, 1],
+      text: "#1A2C3C",
+      muted: "#355066",
+      soft: "#567188",
+      accent: "#5B8FB5",
+      icon: "cloud.snow.fill",
+      precipAccent: "#3F6F94",
+      hint: "Snow on the way",
+    },
+    snowNight: {
+      colors: ["#1A2430", "#2C3B4A", "#445868"],
+      locations: [0, 0.5, 1],
+      text: "#F2F6FA",
+      muted: "#C7D4E0",
+      soft: "#9AADC0",
+      accent: "#B7D4EA",
+      icon: "cloud.snow.fill",
+      precipAccent: "#D3E8F6",
+      hint: null,
+    },
+  }
+
+  return themes[mood] || themes.clear
+}
+
+////////////////////
 // WIDGET UI
 ////////////////////
 
 function buildWidget(weather, place) {
+  const mood = moodFromWeather(weather)
+  const theme = themeForMood(mood)
+  const upcoming = upcomingPrecip(weather)
+
   const w = new ListWidget()
-  // Tight padding so a medium Scriptable widget doesn't clip
   w.setPadding(10, 12, 10, 12)
+
   const bg = new LinearGradient()
-  bg.locations = [0, 1]
-  if (weather.isDayTime) {
-    bg.colors = [new Color("#1B4F72"), new Color("#2E86C1")]
-  } else {
-    bg.colors = [new Color("#0B1C2C"), new Color("#1A3348")]
-  }
+  bg.locations = theme.locations
+  bg.colors = theme.colors.map((hex) => new Color(hex))
   w.backgroundGradient = bg
   w.refreshAfterDate = new Date(Date.now() + CONFIG.refreshMinutes * 60 * 1000)
 
+  const primary = new Color(theme.text)
+  const muted = new Color(theme.muted)
+  const soft = new Color(theme.soft)
+  const accent = new Color(theme.accent)
+
+  // Header: place + condition
   const header = w.addStack()
   header.layoutHorizontally()
   header.centerAlignContent()
 
   const title = header.addText(place.name)
   title.font = Font.semiboldSystemFont(12)
-  title.textColor = Color.white()
+  title.textColor = primary
   title.lineLimit = 1
   title.minimumScaleFactor = 0.8
 
   header.addSpacer()
 
-  const cond = header.addText(weather.weatherText)
-  cond.font = Font.systemFont(11)
-  cond.textColor = new Color("#FFFFFF", 0.85)
+  const status = theme.hint || weather.weatherText
+  const cond = header.addText(status)
+  cond.font = Font.semiboldSystemFont(11)
+  cond.textColor = muted
   cond.lineLimit = 1
   cond.minimumScaleFactor = 0.8
 
   w.addSpacer(4)
 
+  // Hero row: icon + temp | metrics
   const row = w.addStack()
   row.layoutHorizontally()
   row.centerAlignContent()
 
-  const tempStack = row.addStack()
+  const left = row.addStack()
+  left.layoutHorizontally()
+  left.centerAlignContent()
+  left.spacing = 8
+
+  addSymbol(left, theme.icon, accent, 28)
+
+  const tempStack = left.addStack()
   tempStack.layoutVertically()
   tempStack.spacing = 0
+
   const temp = tempStack.addText(`${Math.round(weather.temperature)}°${weather.unit}`)
   temp.font = Font.boldSystemFont(34)
-  temp.textColor = Color.white()
+  temp.textColor = primary
   temp.lineLimit = 1
 
-  if (weather.realFeel != null) {
-    const rf = tempStack.addText(`Feels ${Math.round(weather.realFeel)}°`)
+  const feelBits = []
+  if (weather.realFeel != null) feelBits.push(`Feels ${Math.round(weather.realFeel)}°`)
+  if (theme.hint && weather.weatherText) feelBits.push(weather.weatherText)
+  if (feelBits.length) {
+    const rf = tempStack.addText(feelBits.join(" · "))
     rf.font = Font.systemFont(10)
-    rf.textColor = new Color("#FFFFFF", 0.75)
+    rf.textColor = soft
     rf.lineLimit = 1
+    rf.minimumScaleFactor = 0.75
   }
 
   row.addSpacer()
@@ -306,25 +555,32 @@ function buildWidget(weather, place) {
   metrics.spacing = 2
   metrics.centerAlignContent()
 
-  addMetric(metrics, "Humidity", weather.humidity != null ? `${weather.humidity}%` : "—")
+  addMetric(metrics, "Humidity", weather.humidity != null ? `${weather.humidity}%` : "—", muted, primary)
   if (weather.airQuality) {
-    // Shorter AQI label fits medium width better
     const aqCat = shortAqiCategory(weather.airQuality.category)
     addMetric(
       metrics,
       "AQI",
       `${weather.airQuality.index} ${aqCat}`,
-      weather.airQuality.color
+      muted,
+      aqiTextColor(weather.airQuality.index, theme)
     )
   } else {
-    addMetric(metrics, "AQI", "—")
+    addMetric(metrics, "AQI", "—", muted, primary)
   }
 
   w.addSpacer(6)
 
-  const label = w.addText("Hourly rain / snow")
+  const hourlyTitle =
+    upcoming.maxSnowProb >= upcoming.maxRainProb && upcoming.maxSnowProb > 0
+      ? "Hourly snow chance"
+      : upcoming.maxRainProb >= 30 || ["rain", "rainNight", "rainSoon", "heavyRain", "thunder"].includes(mood)
+        ? "Hourly rain chance"
+        : "Next hours"
+
+  const label = w.addText(hourlyTitle)
   label.font = Font.semiboldSystemFont(10)
-  label.textColor = new Color("#FFFFFF", 0.8)
+  label.textColor = muted
   label.lineLimit = 1
 
   w.addSpacer(2)
@@ -342,41 +598,43 @@ function buildWidget(weather, place) {
 
     const t = col.addText(formatHour(h.time))
     t.font = Font.systemFont(9)
-    t.textColor = new Color("#FFFFFF", 0.8)
+    t.textColor = soft
     t.centerAlignText()
     t.lineLimit = 1
 
     const kind = precipKind(h)
-    try {
-      const sym = SFSymbol.named(kind.symbol)
-      sym.applyFont(Font.systemFont(11))
-      const img = col.addImage(sym.image)
-      img.imageSize = new Size(12, 12)
-      img.tintColor = Color.white()
-      img.centerAlignImage()
-    } catch (_) {
-      const icon = col.addText(kind.fallback)
-      icon.font = Font.systemFont(10)
-      icon.textColor = Color.white()
-      icon.centerAlignText()
-    }
+    addSymbol(col, kind.symbol, kind.prob >= 40 ? new Color(theme.precipAccent) : soft, 12)
 
+    const wet = kind.prob >= 40
     const pct = col.addText(`${Math.round(kind.prob)}%`)
     pct.font = Font.boldSystemFont(10)
-    pct.textColor = Color.white()
+    pct.textColor = wet ? new Color(theme.precipAccent) : primary
     pct.centerAlignText()
     pct.lineLimit = 1
 
     if (h.temp != null) {
       const ht = col.addText(`${Math.round(h.temp)}°`)
       ht.font = Font.systemFont(9)
-      ht.textColor = new Color("#FFFFFF", 0.7)
+      ht.textColor = soft
       ht.centerAlignText()
       ht.lineLimit = 1
     }
   }
 
   return w
+}
+
+function addSymbol(parent, name, tint, size) {
+  try {
+    const sym = SFSymbol.named(name)
+    sym.applyFont(Font.systemFont(size + 2))
+    const img = parent.addImage(sym.image)
+    img.imageSize = new Size(size, size)
+    img.tintColor = tint
+    img.centerAlignImage()
+  } catch (_) {
+    // Symbol missing on older iOS — skip quietly
+  }
 }
 
 function shortAqiCategory(category) {
@@ -386,16 +644,29 @@ function shortAqiCategory(category) {
   return category
 }
 
-function addMetric(parent, label, value, accentHex) {
+function aqiTextColor(aqi, theme) {
+  // Soften neon EPA colors so they stay readable on light sky themes
+  const lightSky = ["#0B2A44", "#0F2F4A", "#14324A", "#1A242C", "#243037", "#122636", "#1A2C3C"].includes(
+    theme.text
+  )
+  if (aqi <= 50) return new Color(lightSky ? "#1B7A2A" : "#00E400")
+  if (aqi <= 100) return new Color(lightSky ? "#9A7A00" : "#F0D000")
+  if (aqi <= 150) return new Color(lightSky ? "#C45A00" : "#FF7E00")
+  if (aqi <= 200) return new Color(lightSky ? "#C41E1E" : "#FF4D4D")
+  if (aqi <= 300) return new Color(lightSky ? "#6B2F8A" : "#C78AD6")
+  return new Color(lightSky ? "#5A0018" : "#FF6B8A")
+}
+
+function addMetric(parent, label, value, labelColor, valueColor) {
   const s = parent.addStack()
   s.layoutHorizontally()
   const l = s.addText(`${label}  `)
   l.font = Font.systemFont(10)
-  l.textColor = new Color("#FFFFFF", 0.7)
+  l.textColor = labelColor
   l.lineLimit = 1
   const v = s.addText(value)
   v.font = Font.semiboldSystemFont(11)
-  v.textColor = accentHex ? new Color(accentHex) : Color.white()
+  v.textColor = valueColor
   v.lineLimit = 1
   v.minimumScaleFactor = 0.75
 }
@@ -407,15 +678,15 @@ function precipKind(h) {
   if (snow > rain && snow > 0) {
     return { symbol: "snowflake", fallback: "S", prob }
   }
-  // WMO snow-ish codes
   const code = h.weatherCode
   if (code === 71 || code === 73 || code === 75 || code === 77 || code === 85 || code === 86) {
     return { symbol: "snowflake", fallback: "S", prob }
   }
   if (code === 66 || code === 67 || code === 56 || code === 57) {
-    return { symbol: "cloud.sleet", fallback: "M", prob }
+    return { symbol: "cloud.sleet.fill", fallback: "M", prob }
   }
-  return { symbol: "cloud.rain", fallback: "R", prob }
+  if (prob >= 60) return { symbol: "cloud.heavyrain.fill", fallback: "R", prob }
+  return { symbol: "cloud.rain.fill", fallback: "R", prob }
 }
 
 function formatHour(iso) {

@@ -2,6 +2,14 @@
 
 Scriptable home-screen widget with **temperature**, **humidity**, **US AQI**, and an **hourly rain/snow** strip.
 
+## Look & feel
+
+The widget restyles itself from the current conditions and the next few hours:
+
+- Clear blue sky → bright sky gradient + sun
+- Rain now / rain likely soon → slate rain tones + rain icon (“Rain on the way” when still clear)
+- Snow, fog, overcast, thunder, night → matching atmospheres
+
 ## Data source
 
 Uses **[Open-Meteo](https://open-meteo.com)** — free, no API key, no sign-up.
