@@ -49,9 +49,10 @@ async function main() {
 }
 
 function present(widget) {
-  if (config.runsInWidget) {
-    Script.setWidget(widget)
-  } else {
+  // Always register the widget so the Home Screen can refresh it.
+  // presentMedium() is only a preview when you tap Run inside Scriptable.
+  Script.setWidget(widget)
+  if (!config.runsInWidget) {
     widget.presentMedium()
   }
   Script.complete()
