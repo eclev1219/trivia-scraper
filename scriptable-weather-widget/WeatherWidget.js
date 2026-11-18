@@ -427,12 +427,6 @@ function formatHour(iso) {
   return `${h}${ampm}`
 }
 
-function cacheFooter(iso) {
-  const d = new Date(iso)
-  const t = d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
-  return `Open-Meteo · updated ${t}`
-}
-
 function errorWidget(title, detail) {
   const w = new ListWidget()
   w.setPadding(14, 16, 14, 16)
