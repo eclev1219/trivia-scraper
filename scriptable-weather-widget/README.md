@@ -14,11 +14,27 @@ Uses **[Open-Meteo](https://open-meteo.com)** — free, no API key, no sign-up.
 
 Open-Meteo blends national models (NOAA GFS/HRRR, ECMWF, and others). Free for non-commercial use (CC BY 4.0 attribution). Commercial products need their paid plan.
 
-## Setup
+## Setup (do not use Safari “Add to Home Screen”)
 
-1. In **Scriptable**, create a new script and paste `WeatherWidget.js`.
-2. Allow **Location** when prompted.
-3. Run the script once to preview, then add a Scriptable widget to the Home Screen (Medium size works best).
+This is a **Scriptable** widget, not a website. Safari → Share → Add to Home Screen will fail (often with a `data:` / restricted-port error). Use the steps below instead.
+
+### 1. Install Scriptable
+Get [Scriptable](https://apps.apple.com/app/scriptable/id1405459188) from the App Store if you don’t have it.
+
+### 2. Create the script
+1. Open **Scriptable** → tap **+**
+2. Delete any placeholder code
+3. Paste the full contents of `WeatherWidget.js`
+4. Tap the script name at the top and rename it (e.g. `Weather`)
+5. Tap **Done**, then run it once (play button) and allow **Location**
+
+### 3. Add the Home Screen widget
+1. Long-press an empty spot on the Home Screen → **Edit Home Screen** → **+** (top left)
+2. Search for **Scriptable** and add a **Medium** widget
+3. Tap the new widget → choose your **Weather** script  
+   - Widget: Medium  
+   - (Optional) turn on “Run script when interacting”
+4. Tap outside / Done
 
 No API key step.
 
